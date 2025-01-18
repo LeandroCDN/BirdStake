@@ -15,22 +15,24 @@ interface TransferDetails {
   requestedAmount: string;
 }
 
+const wldAddress = "0x2cFc85d8E48F8EAB294be644d9E25C3030863003";
+
+
 export const createPermitTransfer = (
   token: string,
-  tokenAmount: number,
-  wldAddress: string,
-  deadline: string
+  tokenAmount: string,
 ): {
   permitTransfer: PermitTransfer;
   permitTransferArgsForm: [string[], string, string];
 } => {
+  const deadline = Math.floor((Date.now() + 30 * 60 * 1000) / 1000).toString();
   const permitTransfer: PermitTransfer = {
     permitted: {
       token: token.toString(),
-      amount:
-        token === wldAddress
-          ? ethers.parseEther(tokenAmount.toString()).toString()
-          : (tokenAmount * 10 ** 6).toString(),
+      amount: "100"
+      // token === wldAddress
+      //   ? ethers.parseEther(tokenAmount.toString()).toString()
+      //   : (Number(tokenAmount) * 10 ** 6).toString(),
     },
     nonce: Date.now().toString(),
     deadline,
@@ -47,19 +49,18 @@ export const createPermitTransfer = (
 
 export const createTransferDetails = (
   token: string,
-  tokenAmount: number,
-  wldAddress: string,
-  CRASHAddress: string
+  tokenAmount: string,
+  gameAddress: string
 ): {
   transferDetails: TransferDetails;
   transferDetailsArgsForm: [string, string];
 } => {
   const transferDetails: TransferDetails = {
-    to: CRASHAddress,
-    requestedAmount:
-      token === wldAddress
-        ? ethers.parseEther(tokenAmount.toString()).toString()
-        : (tokenAmount * 10 ** 6).toString(),
+    to: gameAddress,
+    requestedAmount: "100"
+    // token === wldAddress
+    //   ? ethers.parseEther(tokenAmount.toString()).toString()
+    //   : (Number(tokenAmount) * 10 ** 6).toString(),
   };
 
   const transferDetailsArgsForm: [string, string] = [

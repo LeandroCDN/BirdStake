@@ -1,10 +1,9 @@
 "use client";
 import web3Client from "@/components/utils/web3Client";
+import worldClient from "@/components/utils/worldClient";
 import { MiniKit } from "@worldcoin/minikit-js";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "./../Button/index";
-import Image from "next/image";
-
 type Move = "LEFT" | "RIGHT";
 const MOVES: Move[] = ["LEFT", "RIGHT"];
 type WLD = 0.1 | 0.2 | 0.5 | 1 | 2 | 5;
@@ -25,9 +24,10 @@ export default function Game() {
 
   const usdc = "0x79A02482A880bCE3F13e09Da970dC34db4CD24d1";
   const wld = "0x2cFc85d8E48F8EAB294be644d9E25C3030863003";
+  const game = "0x8CfECbdC92D77fFB6704235b15FeBeF3dd047266";
 
   const fetchUserBalances = async () => {
-    console.log(MiniKit.user);
+    console.log("El user:", MiniKit.user);
     const wldBalanceOF = await web3Client.fetchERC20Balance(
       MiniKit.walletAddress,
       wld
@@ -41,6 +41,15 @@ export default function Game() {
     );
 
     console.log("WLD Balance:", wldBalance);
+  };
+
+  const handleShoot = async () => {
+    const response = await worldClient.sendTransaction(
+      game,
+      (selectedMove === "LEFT" ? true : false).toString(),
+      100,
+      wld
+    );
   };
 
   useEffect(() => {
@@ -69,7 +78,7 @@ export default function Game() {
             <img src="/ball.webp" alt="WLD Logo" className="w-8 h-8" />
             <p> 63.332</p>
             <div className="flex flex-col text-sm">
-              <p> total</p>
+              <p> Total</p>
               <p> Goals</p>
             </div>
           </div>
@@ -111,7 +120,7 @@ export default function Game() {
           ))}
         </div>
         <Button
-          onClick={() => fetchUserBalances()}
+          onClick={handleShoot}
           variant="play"
           size="lg"
           className="w-full"

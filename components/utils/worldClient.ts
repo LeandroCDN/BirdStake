@@ -5,66 +5,66 @@ const ABI = [
     {
         inputs: [
             {
-                internalType: "uint256",
-                name: "multiplierChoice",
-                type: "uint256",
+                "internalType": "bool",
+                "name": "side",
+                "type": "bool"
             },
             {
-                components: [
+                "components": [
                     {
-                        components: [
+                        "components": [
                             {
-                                internalType: "address",
-                                name: "token",
-                                type: "address",
+                                "internalType": "address",
+                                "name": "token",
+                                "type": "address"
                             },
                             {
-                                internalType: "uint256",
-                                name: "amount",
-                                type: "uint256",
-                            },
+                                "internalType": "uint256",
+                                "name": "amount",
+                                "type": "uint256"
+                            }
                         ],
-                        internalType: "struct ISignatureTransfer.TokenPermissions",
-                        name: "permitted",
-                        type: "tuple",
+                        "internalType": "struct ISignatureTransfer.TokenPermissions",
+                        "name": "permitted",
+                        "type": "tuple"
                     },
                     {
-                        internalType: "uint256",
-                        name: "nonce",
-                        type: "uint256",
+                        "internalType": "uint256",
+                        "name": "nonce",
+                        "type": "uint256"
                     },
                     {
-                        internalType: "uint256",
-                        name: "deadline",
-                        type: "uint256",
-                    },
+                        "internalType": "uint256",
+                        "name": "deadline",
+                        "type": "uint256"
+                    }
                 ],
-                internalType: "struct ISignatureTransfer.PermitTransferFrom",
-                name: "permit",
-                type: "tuple",
+                "internalType": "struct ISignatureTransfer.PermitTransferFrom",
+                "name": "permit",
+                "type": "tuple"
             },
             {
-                components: [
+                "components": [
                     {
-                        internalType: "address",
-                        name: "to",
-                        type: "address",
+                        "internalType": "address",
+                        "name": "to",
+                        "type": "address"
                     },
                     {
-                        internalType: "uint256",
-                        name: "requestedAmount",
-                        type: "uint256",
-                    },
+                        "internalType": "uint256",
+                        "name": "requestedAmount",
+                        "type": "uint256"
+                    }
                 ],
-                internalType: "struct ISignatureTransfer.SignatureTransferDetails",
-                name: "transferDetails",
-                type: "tuple",
+                "internalType": "struct ISignatureTransfer.SignatureTransferDetails",
+                "name": "transferDetails",
+                "type": "tuple"
             },
             {
-                internalType: "bytes",
-                name: "signature",
-                type: "bytes",
-            },
+                "internalType": "bytes",
+                "name": "signature",
+                "type": "bytes"
+            }
         ],
         name: "placeBet",
         outputs: [],
@@ -80,12 +80,13 @@ const provider = new ethers.JsonRpcProvider(RPC_URL);
 // Clase para manejar la lógica Web3
 class worldClient {
 
-    async sendTransaction(gameAddress: string, side: boolean, tokenAmount: number, token: string,): Promise<{
+    async sendTransaction(gameAddress: string, side: string, tokenAmount: number, token: string,): Promise<{
         commandPayload: SendTransactionInput | null;
         finalPayload: MiniAppSendTransactionPayload;
     }> {
-        const { permitTransfer, permitTransferArgsForm } = createPermitTransfer(token, tokenAmount);
-        const { transferDetails, transferDetailsArgsForm } = createTransferDetails(token, tokenAmount, gameAddress);
+
+        const { permitTransfer, permitTransferArgsForm } = createPermitTransfer(token, tokenAmount.toString());
+        const { transferDetails, transferDetailsArgsForm } = createTransferDetails(token, tokenAmount.toString(), gameAddress);
 
         const response = await MiniKit.commandsAsync.sendTransaction({
             transaction: [
@@ -94,7 +95,7 @@ class worldClient {
                     abi: ABI, // ABI of the function
                     functionName: "placeBet", // Name of the function
                     args: [
-                        side,
+                        side.toString(),
                         permitTransferArgsForm,
                         transferDetailsArgsForm,
                         "PERMIT2_SIGNATURE_PLACEHOLDER_0",
