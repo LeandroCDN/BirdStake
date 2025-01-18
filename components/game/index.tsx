@@ -1,23 +1,31 @@
 "use client";
 import web3Client from "@/components/utils/web3Client";
 import worldClient from "@/components/utils/worldClient";
+import settleBet from "@/components/utils/settleBet";
 import { MiniKit } from "@worldcoin/minikit-js";
 import { useEffect, useState } from "react";
 import Button from "./../Button/index";
 type Move = "LEFT" | "RIGHT";
 const MOVES: Move[] = ["LEFT", "RIGHT"];
 type WLD = 0.1 | 0.2 | 0.5 | 1 | 2 | 5;
-const MOVE_IMAGES: Record<Move, string> = {
-  LEFT: "/bgs/1.webp",
-  RIGHT: "/bgs/2.webp",
-};
 const WLD_AMOUNT_OPTIONS: WLD[] = [0.1, 0.2, 0.5, 1, 2, 5];
+
+interface Bet {
+  choice: BigInt; // uint40
+  winResult: boolean; // uint40
+  placeBlockNumber: BigInt; // uint176
+  amount: bigint; // uint128
+  winAmount: bigint; // uint128
+  player: string; // address
+  token: string; // address
+  isSettled: boolean; // bool
+}
 
 export default function Game() {
   const [usdcBalance, setUsdcBalance] = useState(0);
   const [wldBalance, setWldBalance] = useState("0");
   const [selectedAmountWLD, setSelectedAmountWLD] = useState<WLD>(2);
-
+  const [currentBet, setCurrentBet] = useState<Bet | null>(null);
   const [selectedMove, setSelectedMove] = useState<Move | null>("LEFT");
   const [bg, setBg] = useState(0);
   const bgImages = ["/bgs/0.webp", "/bgs/1.webp", "/bgs/2.webp", "/bgs/3.webp"];
@@ -28,6 +36,9 @@ export default function Game() {
 
   const fetchUserBalances = async () => {
     console.log("El user:", MiniKit.user);
+    if (MiniKit.walletAddress == null) {
+      return;
+    }
     const wldBalanceOF = await web3Client.fetchERC20Balance(
       MiniKit.walletAddress,
       wld
@@ -50,7 +61,38 @@ export default function Game() {
       100,
       wld
     );
+    if (response?.finalPayload?.status === "success") {
+      endGame();
+    }
   };
+
+  function endGame() {
+    setTimeout(async () => {
+      if (MiniKit.walletAddress == null) {
+        return;
+      }
+      const r = await settleBet.settleBet(game, MiniKit.walletAddress);
+      console.log("Transaction :", r);
+
+      const flipContract = await web3Client.getContract(
+        game,
+        MiniKit.walletAddress
+      );
+      const betData = await flipContract.bets(MiniKit.walletAddress);
+      const formattedBet: Bet = {
+        choice: BigInt(betData.choice),
+        winResult: Boolean(betData.winResult),
+        placeBlockNumber: BigInt(betData.placeBlockNumber),
+        amount: BigInt(betData.amount),
+        winAmount: BigInt(betData.winAmount),
+        player: betData.player,
+        token: betData.token,
+        isSettled: betData.isSettled,
+      };
+      setCurrentBet(formattedBet);
+      console.log("Current bet:", formattedBet);
+    }, 3000);
+  }
 
   useEffect(() => {
     fetchUserBalances();

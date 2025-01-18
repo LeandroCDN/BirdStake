@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ethers } from "ethers";
-import ABI from "@/public/ABIS/ABI.json";
+import ABI from "@/public/ABIS/Flip.json";
 
 export async function POST(_request: NextRequest) {
   const pendingId = _request.nextUrl.searchParams.get("pendingId");
@@ -13,13 +13,13 @@ export async function POST(_request: NextRequest) {
     throw new Error("SIGNER_WALLET_PRIVATE_KEY environment variable is not set");
   }
   const signer = new ethers.Wallet(signerPrivateKey, provider);
-  const crashAddress = process.env.NEXT_PUBLIC_CRASH_ADDRESS;
-  if (!crashAddress) {
+  const ganeContract = "0x8CfECbdC92D77fFB6704235b15FeBeF3dd047266";
+  if (!ganeContract) {
     throw new Error("NEXT_PUBLIC_MINE_ADDRESS environment variable is not set");
   }
 
-  const randomNumber = Math.floor(Math.random() * 10000);
-  const contract = new ethers.Contract(crashAddress, ABI, signer);
+  const randomNumber = Math.floor(Math.random() * 100000);
+  const contract = new ethers.Contract(ganeContract, ABI, signer);
 
   const maxRetries = 2;
   let attempts = 0;
@@ -30,8 +30,8 @@ export async function POST(_request: NextRequest) {
     console.log(`Attempt ${attempts} to settle bet...`);
     try {
       const resultBet = await contract._settleBet(pendingId, randomNumber, {
-        gasPrice: 600000,
-        gasLimit: 100000,
+        gasPrice: 500000,
+        gasLimit: 200000,
       });
 
       console.log("Transaction sent. Waiting for receipt...");
