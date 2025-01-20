@@ -11,6 +11,7 @@ import Image from "next/image";
 import ResultModal from "./resultModal";
 import SendTxModal from "./sendTransactionModal";
 import { ethers } from "ethers";
+import TxLimitModal from "./txLimitModal";
 
 type Move = "LEFT" | "RIGHT";
 const MOVES: Move[] = ["LEFT", "RIGHT"];
@@ -48,7 +49,7 @@ export default function Game() {
   const [sendingTransaction, setSendingTransaction] = useState(false);
   const [settleBetResult, setSettleBetResult] = useState(false);
   const [resultModal, setResultModal] = useState(false);
-  const [win, setWin] = useState(false);
+  const [txLimitModal, setTxLimitModal] = useState(false);
   const [bg, setBg] = useState(0);
   const bgImages = [
     "/bgs/0.webp",
@@ -94,6 +95,8 @@ export default function Game() {
 
   const handleShoot = async () => {
     console.log("handleShoot selectedAmount: ", selectedAmount);
+    // check daily_transaction_limit
+
     try {
       setisPlaying(true);
       setSendingTransaction(true);
@@ -106,9 +109,15 @@ export default function Game() {
       if (response?.finalPayload?.status === "success") {
         endGame();
       } else {
+        const e = new Error(response.finalPayload?.error_code);
+        console.log("ERROR", e);
         if (response?.finalPayload?.status === "error") {
           setisPlaying(false);
           setSendingTransaction(false);
+        }
+        if (e.message == "daily_tx_limit_reached") {
+          setTxLimitModal(true);
+          console.log("Daily tx limit reached", true);
         }
       }
     } catch (e) {

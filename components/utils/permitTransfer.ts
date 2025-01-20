@@ -55,7 +55,7 @@ export const createTransferDetails = (
   transferDetails: TransferDetails;
   transferDetailsArgsForm: [string, string];
 } => {
-  console.log("transferDetails tokenAmount in", tokenAmount);
+
   const transferDetails: TransferDetails = {
     to: gameAddress,
     requestedAmount:
@@ -63,7 +63,7 @@ export const createTransferDetails = (
         ? ethers.parseEther(tokenAmount.toString()).toString()
         : (Number(tokenAmount) * 10 ** 6).toString(),
   };
-  console.log("transferDetails tokenAmount out", transferDetails.requestedAmount);
+
   const transferDetailsArgsForm: [string, string] = [
     transferDetails.to,
     transferDetails.requestedAmount,

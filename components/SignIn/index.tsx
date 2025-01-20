@@ -42,12 +42,12 @@ export function SignIn() {
         {isLoggedIn ? (
           <Game />
         ) : (
-          <div>
+          <div className="flex flex-col w-screen h-screen items-center justify-between">
             <button onClick={signInWithWallet}>
               <p className="text-4xl px-8 py-2 text-white">LOGIN</p>
             </button>
             <div>
-              <h1 className="">MEME RACING</h1>
+              <h1 className="">PENALTY</h1>
             </div>
           </div>
         )}
