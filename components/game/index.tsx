@@ -62,7 +62,6 @@ export default function Game() {
   ];
 
   const fetchUserBalances = async () => {
-    // console.log("El user:", MiniKit.user);
     if (MiniKit.walletAddress == null) {
       return;
     }
@@ -70,7 +69,7 @@ export default function Game() {
       MiniKit.walletAddress,
       wld
     );
-    // console.log(wldBalanceOF);
+
     setWldBalance(wldBalanceOF);
     await setUsdcBalance(
       parseFloat(
@@ -84,17 +83,14 @@ export default function Game() {
       MiniKit.walletAddress
     );
     setPendingBets(pendingId);
-    console.log(totalGoals, totalUserGames[1]);
+
     setGoals({
       totalGoals: totalGoals.toString(),
       userGoal: totalUserGames[1].toString(),
     });
-
-    // console.log("WLD Balance:", wldBalance);
   };
 
   const handleShoot = async () => {
-    console.log("handleShoot selectedAmount: ", selectedAmount);
     // check daily_transaction_limit
 
     try {
@@ -359,6 +355,13 @@ export default function Game() {
             sendingTransaction ? `ROLLING UP SOCKS...` : `STARTING RUN-UP...`
           }
           onClose={() => setSendingTransaction(false)}
+        />
+      )}
+      {txLimitModal && (
+        <TxLimitModal
+          title="Transaction Limit Reached"
+          resultMessage="You have reached your daily transaction limit. Please try again later."
+          onClose={() => setTxLimitModal(false)}
         />
       )}
     </div>

@@ -87,7 +87,6 @@ class worldClient {
 
         const { permitTransfer, permitTransferArgsForm } = createPermitTransfer(token, tokenAmount.toString());
         const { transferDetails, transferDetailsArgsForm } = createTransferDetails(token, tokenAmount.toString(), gameAddress);
-        console.log("sendTransaction side:", side.toString());
         const response = await MiniKit.commandsAsync.sendTransaction({
             transaction: [
                 {
