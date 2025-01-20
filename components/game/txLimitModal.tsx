@@ -14,7 +14,7 @@ const TxLimitModal: React.FC<ModalProps> = ({
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-black/50 rounded-lg shadow-lg p-6 w-96 flex flex-col items-center border-2 border-[#ff8a00]">
-        <h2 className="text-4xl text-center  mb-4">{title}</h2>
+        <h2 className="text-4xl text-center text-white mb-4">{title}</h2>
         <p className="text-gray-300 text-center mb-6">{resultMessage}</p>
         <button
           onClick={onClose}
