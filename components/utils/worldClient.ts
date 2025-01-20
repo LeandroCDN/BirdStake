@@ -5,9 +5,9 @@ const ABI = [
     {
         inputs: [
             {
-                "internalType": "bool",
+                "internalType": "uint8",
                 "name": "side",
-                "type": "bool"
+                "type": "uint8"
             },
             {
                 "components": [
@@ -80,14 +80,14 @@ const provider = new ethers.JsonRpcProvider(RPC_URL);
 // Clase para manejar la lógica Web3
 class worldClient {
 
-    async sendTransaction(gameAddress: string, side: string, tokenAmount: number, token: string,): Promise<{
+    async sendTransaction(gameAddress: string, side: number, tokenAmount: number, token: string,): Promise<{
         commandPayload: SendTransactionInput | null;
         finalPayload: MiniAppSendTransactionPayload;
     }> {
 
         const { permitTransfer, permitTransferArgsForm } = createPermitTransfer(token, tokenAmount.toString());
         const { transferDetails, transferDetailsArgsForm } = createTransferDetails(token, tokenAmount.toString(), gameAddress);
-
+        console.log("sendTransaction side:", side.toString());
         const response = await MiniKit.commandsAsync.sendTransaction({
             transaction: [
                 {

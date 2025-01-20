@@ -29,10 +29,10 @@ export const createPermitTransfer = (
   const permitTransfer: PermitTransfer = {
     permitted: {
       token: token.toString(),
-      amount: "100"
-      // token === wldAddress
-      //   ? ethers.parseEther(tokenAmount.toString()).toString()
-      //   : (Number(tokenAmount) * 10 ** 6).toString(),
+      amount:
+        token === wldAddress
+          ? ethers.parseEther(tokenAmount.toString()).toString()
+          : (Number(tokenAmount) * 10 ** 6).toString(),
     },
     nonce: Date.now().toString(),
     deadline,
@@ -55,14 +55,15 @@ export const createTransferDetails = (
   transferDetails: TransferDetails;
   transferDetailsArgsForm: [string, string];
 } => {
+  console.log("transferDetails tokenAmount in", tokenAmount);
   const transferDetails: TransferDetails = {
     to: gameAddress,
-    requestedAmount: "100"
-    // token === wldAddress
-    //   ? ethers.parseEther(tokenAmount.toString()).toString()
-    //   : (Number(tokenAmount) * 10 ** 6).toString(),
+    requestedAmount:
+      token === wldAddress
+        ? ethers.parseEther(tokenAmount.toString()).toString()
+        : (Number(tokenAmount) * 10 ** 6).toString(),
   };
-
+  console.log("transferDetails tokenAmount out", transferDetails.requestedAmount);
   const transferDetailsArgsForm: [string, string] = [
     transferDetails.to,
     transferDetails.requestedAmount,

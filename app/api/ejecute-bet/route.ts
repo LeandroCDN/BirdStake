@@ -5,15 +5,20 @@ import ABI from "@/public/ABIS/Flip.json";
 export async function POST(_request: NextRequest) {
   const pendingId = _request.nextUrl.searchParams.get("pendingId");
 
+  const wallets = [
+    process.env.SIGNER_WALLET_1,
+    process.env.SIGNER_WALLET_2
+  ]
+  const index = Number(pendingId) % 2
   console.log("STARTING BET");
-  const signerPrivateKey = process.env.SIGNER_WALLET;
+  const signerPrivateKey = wallets[index];
   const RPC = process.env.NEXT_PUBLIC_RPC_URL;
   const provider = new ethers.JsonRpcProvider(RPC);
   if (!signerPrivateKey) {
     throw new Error("SIGNER_WALLET_PRIVATE_KEY environment variable is not set");
   }
   const signer = new ethers.Wallet(signerPrivateKey, provider);
-  const ganeContract = "0x8CfECbdC92D77fFB6704235b15FeBeF3dd047266";
+  const ganeContract = "0x51C2296eeb9D8b245fB097D2F9afbd710089a2E1";
   if (!ganeContract) {
     throw new Error("NEXT_PUBLIC_MINE_ADDRESS environment variable is not set");
   }
@@ -30,7 +35,7 @@ export async function POST(_request: NextRequest) {
     console.log(`Attempt ${attempts} to settle bet...`);
     try {
       const resultBet = await contract._settleBet(pendingId, randomNumber, {
-        gasPrice: 500000,
+        gasPrice: 400000,
         gasLimit: 200000,
       });
 
