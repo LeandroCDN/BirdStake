@@ -15,8 +15,8 @@ import TxLimitModal from "./txLimitModal";
 
 type Move = "LEFT" | "RIGHT";
 const MOVES: Move[] = ["LEFT", "RIGHT"];
-type WLD = 0.1 | 0.2 | 0.5 | 1 | 2 | 5;
-const WLD_AMOUNT_OPTIONS: WLD[] = [0.1, 0.2, 0.5, 1, 2, 5];
+type WLD = 0.1 | 0.2 | 0.3 | 0.5 | 0.8 | 1;
+const WLD_AMOUNT_OPTIONS: WLD[] = [0.1, 0.2, 0.3, 0.5, 0.8, 1];
 
 interface Bet {
   choice: boolean; // uint40
@@ -36,9 +36,9 @@ interface Goals {
 export default function Game() {
   const usdc = "0x79A02482A880bCE3F13e09Da970dC34db4CD24d1";
   const wld = "0x2cFc85d8E48F8EAB294be644d9E25C3030863003";
-  const game = "0x51C2296eeb9D8b245fB097D2F9afbd710089a2E1";
+  const game = "0x6A84107E72d20E310598f5346abF7e92280CF672";
   const [wldBalance, setWldBalance] = useState("0");
-  const [selectedAmount, setSelectedAmount] = useState<WLD>(2);
+  const [selectedAmount, setSelectedAmount] = useState<WLD>(1);
   const [selectedMove, setSelectedMove] = useState<Move | null>();
   const [currentBet, setCurrentBet] = useState<Bet | null>(null);
   const [goals, setGoals] = useState<Goals | null>(null);
@@ -169,17 +169,17 @@ export default function Game() {
           setBg(3);
         }
       }
+      setisPlaying(false);
       setTimeout(() => {
         setResultModal(true);
-        setisPlaying(false);
-      }, 1500);
+      }, 700);
       console.log("Current bet:", formattedBet);
     }, 3000);
   }
 
   function resetInitialState() {
     setSelectedMove(null);
-    setSelectedAmount(2);
+    setSelectedAmount(1);
     setCurrentBet(null);
     setBg(0);
     fetchUserBalances();
@@ -349,7 +349,7 @@ export default function Game() {
           onClose={() => setResultModal(false)} // Solo cierra el modal
         />
       )}
-      {isPlaying && !resultModal && (
+      {isPlaying && (
         <SendTxModal
           resultMessage={
             sendingTransaction ? `ROLLING UP SOCKS...` : `STARTING RUN-UP...`

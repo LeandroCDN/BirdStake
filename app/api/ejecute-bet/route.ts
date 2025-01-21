@@ -18,7 +18,7 @@ export async function POST(_request: NextRequest) {
     throw new Error("SIGNER_WALLET_PRIVATE_KEY environment variable is not set");
   }
   const signer = new ethers.Wallet(signerPrivateKey, provider);
-  const ganeContract = "0x51C2296eeb9D8b245fB097D2F9afbd710089a2E1";
+  const ganeContract = "0x6A84107E72d20E310598f5346abF7e92280CF672";
   if (!ganeContract) {
     throw new Error("NEXT_PUBLIC_MINE_ADDRESS environment variable is not set");
   }
