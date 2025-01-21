@@ -325,13 +325,14 @@ export default function Game() {
           variant="play"
           size={pendingBets == 0 ? "lg" : "md"}
           className="w-full"
-          disabled={pendingBets == 0 ? true : false}
+          disabled={true}
         >
-          {pendingBets == 0
+          {/* {pendingBets == 0
             ? isPlaying
               ? "PLAYING..."
               : "MAINTANCE"
-            : "RESUME GAME"}
+            : "RESUME GAME"} */}
+          MAINTANCE
         </Button>
       </div>
       {resultModal && (
