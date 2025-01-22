@@ -16,7 +16,9 @@ import TxLimitModal from "./txLimitModal";
 type Move = "LEFT" | "RIGHT";
 const MOVES: Move[] = ["LEFT", "RIGHT"];
 type WLD = 0.1 | 0.2 | 0.3 | 0.5 | 0.8 | 1;
+type USDC = 0.25 | 0.4 | 0.8 | 1 | 1.5 | 2;
 const WLD_AMOUNT_OPTIONS: WLD[] = [0.1, 0.2, 0.3, 0.5, 0.8, 1];
+const USDC_AMOUNT_OPTIONS: USDC[] = [0.25, 0.4, 0.8, 1, 1.5, 2];
 
 interface Bet {
   choice: boolean; // uint40
@@ -38,7 +40,7 @@ export default function Game() {
   const wld = "0x2cFc85d8E48F8EAB294be644d9E25C3030863003";
   const game = "0x6A84107E72d20E310598f5346abF7e92280CF672";
   const [wldBalance, setWldBalance] = useState("0");
-  const [selectedAmount, setSelectedAmount] = useState<WLD>(1);
+  const [selectedAmount, setSelectedAmount] = useState<WLD | USDC>(1);
   const [selectedMove, setSelectedMove] = useState<Move | null>();
   const [currentBet, setCurrentBet] = useState<Bet | null>(null);
   const [goals, setGoals] = useState<Goals | null>(null);
@@ -303,22 +305,41 @@ export default function Game() {
             </button>
             {/* Imagen posicionada */}
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            {WLD_AMOUNT_OPTIONS.map((wldd) => (
-              <Button
-                key={wldd}
-                onClick={() => {
-                  setSelectedAmount(wldd);
-                }}
-                variant="primary"
-                size="sm"
-                isSelected={selectedAmount === wldd}
-                disabled={isPlaying}
-              >
-                {wldd} {selectedToken === wld ? "WLD" : "USDC"}
-              </Button>
-            ))}
-          </div>
+          {selectedToken === wld ? (
+            <div className="grid grid-cols-3 gap-2">
+              {WLD_AMOUNT_OPTIONS.map((wldd) => (
+                <Button
+                  key={wldd}
+                  onClick={() => {
+                    setSelectedAmount(wldd);
+                  }}
+                  variant="primary"
+                  size="sm"
+                  isSelected={selectedAmount === wldd}
+                  disabled={isPlaying}
+                >
+                  {wldd} {selectedToken === wld ? "WLD" : "USDC"}
+                </Button>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-2">
+              {USDC_AMOUNT_OPTIONS.map((wldd) => (
+                <Button
+                  key={wldd}
+                  onClick={() => {
+                    setSelectedAmount(wldd);
+                  }}
+                  variant="primary"
+                  size="sm"
+                  isSelected={selectedAmount === wldd}
+                  disabled={isPlaying}
+                >
+                  {wldd} {selectedToken === wld ? "WLD" : "USDC"}
+                </Button>
+              ))}
+            </div>
+          )}
         </div>
         <Button
           onClick={pendingBets == 0 ? handleShoot : endGame}
