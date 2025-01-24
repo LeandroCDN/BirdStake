@@ -15,10 +15,10 @@ import TxLimitModal from "./txLimitModal";
 
 type Move = "LEFT" | "RIGHT";
 const MOVES: Move[] = ["LEFT", "RIGHT"];
-type WLD = 0.1 | 0.2 | 0.3 | 0.5 | 0.8 | 1;
-type USDC = 0.25 | 0.4 | 0.8 | 1 | 1.5 | 2;
-const WLD_AMOUNT_OPTIONS: WLD[] = [0.1, 0.2, 0.3, 0.5, 0.8, 1];
-const USDC_AMOUNT_OPTIONS: USDC[] = [0.25, 0.4, 0.8, 1, 1.5, 2];
+type WLD = 0.15 | 0.3 | 0.5 | 1 | 2 | 5;
+type USDC = 0.25 | 0.5 | 1 | 2 | 4 | 10;
+const WLD_AMOUNT_OPTIONS: WLD[] = [0.15, 0.3, 0.5, 1, 2, 5];
+const USDC_AMOUNT_OPTIONS: USDC[] = [0.25, 0.5, 1, 2, 4, 10];
 
 interface Bet {
   choice: boolean; // uint40
