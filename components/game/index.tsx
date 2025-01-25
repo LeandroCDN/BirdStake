@@ -12,6 +12,7 @@ import ResultModal from "./resultModal";
 import SendTxModal from "./sendTransactionModal";
 import { ethers } from "ethers";
 import TxLimitModal from "./txLimitModal";
+import PointsInfo from "./pointsInfo";
 
 type Move = "LEFT" | "RIGHT";
 const MOVES: Move[] = ["LEFT", "RIGHT"];
@@ -39,6 +40,7 @@ export default function Game() {
   const usdc = "0x79A02482A880bCE3F13e09Da970dC34db4CD24d1";
   const wld = "0x2cFc85d8E48F8EAB294be644d9E25C3030863003";
   const game = "0x6A84107E72d20E310598f5346abF7e92280CF672";
+  const [points, setPoints] = useState("0");
   const [wldBalance, setWldBalance] = useState("0");
   const [selectedAmount, setSelectedAmount] = useState<WLD | USDC>(1);
   const [selectedMove, setSelectedMove] = useState<Move | null>();
@@ -52,6 +54,7 @@ export default function Game() {
   const [settleBetResult, setSettleBetResult] = useState(false);
   const [resultModal, setResultModal] = useState(false);
   const [txLimitModal, setTxLimitModal] = useState(false);
+  const [pointsModal, setPointsModal] = useState(false);
   const [bg, setBg] = useState(0);
   const bgImages = [
     "/bgs/0.webp",
@@ -64,9 +67,16 @@ export default function Game() {
   ];
 
   const fetchUserBalances = async () => {
+    const points = await web3Client.getTotalPoints(
+      "0x8ea820f2C578b012bea3eeC401fA1B8c750d71e5",
+      "0xE58742A05C93877c8eDe03B9192c6A08E78B70cE"
+    );
+    setPoints(points.toString());
+    console.log("User Points:", points);
     if (MiniKit.walletAddress == null) {
       return;
     }
+
     const wldBalanceOF = await web3Client.fetchERC20Balance(
       MiniKit.walletAddress,
       wld
@@ -265,8 +275,20 @@ export default function Game() {
         </section>
       </div>
       {SocialIcons}
-
-      <div className="space-y-3 ">
+      <div className="space-y-1">
+        <div className="flex justify-center items-center">
+          <button
+            onClick={() => setPointsModal(true)}
+            className="text-black/50 text-sm flex items-center space-x-1"
+          >
+            <span>{points.toString()}</span>
+            <img
+              src="/info.svg"
+              alt="info icon text-black/50"
+              className="w-4 h-4"
+            />
+          </button>
+        </div>
         <div className="grid grid-cols-2 gap-2">
           {MOVES.map((move) => (
             <Button
@@ -383,6 +405,14 @@ export default function Game() {
           title="Transaction Limit Reached"
           resultMessage="You have reached your daily transaction limit. Please try again later."
           onClose={() => setTxLimitModal(false)}
+        />
+      )}
+      {pointsModal && (
+        <PointsInfo
+          title="$Bird Points"
+          points={Number(points)}
+          resultMessage="Play on Birdgames to get more points!"
+          onClose={() => setPointsModal(false)}
         />
       )}
     </div>

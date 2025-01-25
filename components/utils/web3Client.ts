@@ -1,5 +1,7 @@
 import { ethers } from "ethers";
 import ERC20ABI from "@/public/ABIS/ERC20.json";
+import POINTSABI from "@/public/ABIS/pointsManager.json";
+import { use } from "react";
 
 // Configuración inicial
 const RPC_URL = "https://worldchain-mainnet.g.alchemy.com/public";
@@ -7,42 +9,55 @@ const provider = new ethers.JsonRpcProvider(RPC_URL);
 
 // Clase para manejar la lógica Web3
 class Web3Client {
-    private provider: ethers.JsonRpcProvider;
+  private provider: ethers.JsonRpcProvider;
 
-    constructor() {
-        this.provider = provider;
-    }
+  constructor() {
+    this.provider = provider;
+  }
 
-    // Método para crear una instancia de contrato
-    async getContract(address: string, abi: any) {
-        return await new ethers.Contract(address, abi, this.provider);
-    }
+  // Método para crear una instancia de contrato
+  async getContract(address: string, abi: any) {
+    return await new ethers.Contract(address, abi, this.provider);
+  }
 
-    // Función para obtener el balance de un token ERC20
-    async fetchERC20Balance(walletAddress: string, tokenAddress: string, decimals: number = 18): Promise<string> {
+  // Función para obtener el balance de un token ERC20
+  async fetchERC20Balance(
+    walletAddress: string,
+    tokenAddress: string,
+    decimals: number = 18
+  ): Promise<string> {
+    const contract = await this.getContract(tokenAddress, ERC20ABI);
 
-        const contract = await this.getContract(tokenAddress, ERC20ABI);
+    const balance = await contract.balanceOf(walletAddress);
+    const formattedBalance =
+      decimals === 18
+        ? parseFloat(ethers.formatEther(balance)).toFixed(2)
+        : (parseFloat(balance) / 10 ** decimals).toFixed(2);
+    return formattedBalance.toString();
+  }
 
-        const balance = await contract.balanceOf(walletAddress);
-        const formattedBalance = decimals === 18
-            ? parseFloat(ethers.formatEther(balance)).toFixed(2)
-            : (parseFloat(balance) / 10 ** decimals).toFixed(2);
-        return formattedBalance.toString();
-    }
+  // Función para obtener `pendingIdsPerPlayer`
+  async fetchPendingId(
+    walletAddress: string,
+    crashAddress: string,
+    abi: any
+  ): Promise<any> {
+    const contract = await this.getContract(crashAddress, abi);
+    const pendingId = await contract.pendingIdsPerPlayer(walletAddress);
+    return pendingId;
+  }
 
-    // Función para obtener `pendingIdsPerPlayer`
-    async fetchPendingId(walletAddress: string, crashAddress: string, abi: any): Promise<any> {
-        const contract = await this.getContract(crashAddress, abi);
-        const pendingId = await contract.pendingIdsPerPlayer(walletAddress);
-        return pendingId;
-    }
+  async getTotalPoints(walletAddress: string, contract: string): Promise<any> {
+    const pointsContract = await this.getContract(contract, POINTSABI);
+    const userPoints = await pointsContract.getPoints(walletAddress);
+    return userPoints;
+  }
 }
 
 // Instancia exportada para reutilizar
 const web3Client = new Web3Client();
 
 export default web3Client;
-
 
 /**
  * HOW TO USE
