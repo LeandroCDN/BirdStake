@@ -96,6 +96,12 @@ export default function Game() {
       MiniKit.walletAddress
     );
     setPendingBets(pendingId);
+    if (pendingId != 0) {
+      const pendingIdUserChoice = await flipContract.bets(
+        Number(pendingId) - 1
+      );
+      setSelectedMove(MOVES[Number(pendingIdUserChoice.choice)]);
+    }
 
     setGoals({
       totalGoals: totalGoals.toString(),
@@ -312,7 +318,7 @@ export default function Game() {
               variant="primary"
               isSelected={selectedMove === move}
               size="md"
-              disabled={isPlaying}
+              disabled={isPlaying || pendingBets != 0}
             >
               {move}
             </Button>
@@ -331,7 +337,7 @@ export default function Game() {
                   : setSelectedToken(wld);
               }}
               className="relative text-base text-center z-20"
-              disabled={isPlaying}
+              disabled={isPlaying || pendingBets != 0}
             >
               {selectedToken === wld ? "PLAY IN USDC" : "PLAY IN WLD"}
             </button>
@@ -348,7 +354,7 @@ export default function Game() {
                   variant="primary"
                   size="sm"
                   isSelected={selectedAmount === wldd}
-                  disabled={isPlaying}
+                  disabled={isPlaying || pendingBets != 0}
                 >
                   {wldd} {selectedToken === wld ? "WLD" : "USDC"}
                 </Button>
