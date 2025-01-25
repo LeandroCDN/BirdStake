@@ -67,15 +67,16 @@ export default function Game() {
   ];
 
   const fetchUserBalances = async () => {
+    if (MiniKit.walletAddress == null) {
+      return;
+    }
+
     const points = await web3Client.getTotalPoints(
-      "0x8ea820f2C578b012bea3eeC401fA1B8c750d71e5",
+      MiniKit.walletAddress,
       "0xE58742A05C93877c8eDe03B9192c6A08E78B70cE"
     );
     setPoints(points.toString());
     console.log("User Points:", points);
-    if (MiniKit.walletAddress == null) {
-      return;
-    }
 
     const wldBalanceOF = await web3Client.fetchERC20Balance(
       MiniKit.walletAddress,
