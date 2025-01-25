@@ -101,6 +101,7 @@ export default function Game() {
         Number(pendingId) - 1
       );
       setSelectedMove(MOVES[Number(pendingIdUserChoice.choice)]);
+      setSelectedAmount(0.15);
     }
 
     setGoals({
@@ -202,7 +203,7 @@ export default function Game() {
       }
 
       console.log("Current bet:", formattedBet);
-    }, 4000);
+    }, 500);
   }
 
   function resetInitialState() {
