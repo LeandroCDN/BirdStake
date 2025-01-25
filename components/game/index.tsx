@@ -169,32 +169,34 @@ export default function Game() {
       setCurrentBet(formattedBet);
       console.log("formattedBet.winResult", formattedBet.winResult);
       console.log("formattedBet.choice", formattedBet.choice);
-      if (formattedBet.winResult === true) {
-        if (formattedBet.choice) {
-          setBg(6);
+
+      if (formattedBet.isSettled === true) {
+        if (formattedBet.winResult === true) {
+          if (formattedBet.choice) {
+            setBg(6);
+          } else {
+            console.log("win 5 ");
+            setBg(5);
+          }
         } else {
-          console.log("win 5 ");
-          setBg(5);
+          if (formattedBet.choice) {
+            setBg(4);
+          } else {
+            setBg(3);
+          }
         }
+        setisPlaying(false);
+        setTimeout(() => {
+          setResultModal(true);
+        }, 700);
       } else {
-        if (formattedBet.choice) {
-          setBg(4);
-        } else {
-          setBg(3);
-        }
+        setSettleBetResult(false);
+        setisPlaying(false);
+        resetInitialState();
       }
-      setisPlaying(false);
-      setTimeout(() => {
-        setResultModal(true);
-      }, 700);
-      // } else {
-      //   setSettleBetResult(false);
-      //   setisPlaying(false);
-      //   resetInitialState();
-      // }
 
       console.log("Current bet:", formattedBet);
-    }, 3000);
+    }, 4000);
   }
 
   function resetInitialState() {
