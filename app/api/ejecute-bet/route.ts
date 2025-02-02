@@ -32,14 +32,14 @@ export async function POST(_request: NextRequest) {
 
   while (attempts <= maxRetries && !transactionSuccessful) {
     attempts++;
-    console.log(`Attempt ${attempts} to settle bet...`);
-    const feeData = await provider.getFeeData();
+    console.log(`Attempt ${attempts} to settle bet... ${pendingId}`);
+    const feeData = await provider.getFeeData()
+
     try {
       const resultBet = await contract._settleBet(pendingId, randomNumber, {
-        gasPrice: 600000,
-        maxFeePerGas: feeData.maxFeePerGas ? feeData.maxFeePerGas * BigInt(2) : 800000,
-        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas ? feeData.maxPriorityFeePerGas * BigInt(2) : 800000,
-        gasLimit: 200000,
+        maxFeePerGas: feeData.maxFeePerGas, // Recommended max fee per gas
+        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas, // Recommended priority fee
+        gasLimit: 200000, // Keep your gas limit
       });
 
       console.log("Transaction sent. Waiting for receipt...");
@@ -63,6 +63,7 @@ export async function POST(_request: NextRequest) {
       }
     } catch (error) {
       console.error(`Error on attempt ${attempts}:`, error);
+      console.error(`feeData :`, feeData);
       if (attempts > maxRetries) {
         return NextResponse.json({
           error: "Transaction failed after maximum retries",
