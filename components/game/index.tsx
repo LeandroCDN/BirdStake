@@ -123,7 +123,7 @@ export default function Game() {
         selectedToken
       );
       if (response?.finalPayload?.status === "success") {
-        endGame();
+        fectchPendingId();
       } else {
         const e = new Error(response.finalPayload?.error_code);
         console.log("ERROR", e);
@@ -142,6 +142,22 @@ export default function Game() {
       console.log(e);
     }
   };
+
+  async function fectchPendingId() {
+    if (MiniKit.walletAddress == null) {
+      return;
+    }
+    const pendingId = await settleBet.getPending(game, MiniKit?.walletAddress);
+
+    if (pendingId != 0) {
+      console.log("Launching game with pendingId:", pendingId);
+      endGame();
+    } else {
+      setTimeout(fectchPendingId, 1000); // Vuelve a consultar en 1 segundo
+    }
+
+    fectchPendingId();
+  }
 
   function endGame() {
     setTimeout(async () => {
