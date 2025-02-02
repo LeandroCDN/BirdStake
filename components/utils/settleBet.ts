@@ -15,10 +15,6 @@ class SettleBet {
 
     async settleBet(gameAddress: string, userAddress: string) {
         console.log("Calling back...");
-
-        // Wait for 6 seconds before proceeding
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
         // Obtener el pendingId
         const pendingId = await this.getPending(gameAddress, userAddress);
 
