@@ -159,67 +159,65 @@ export default function Game() {
     fectchPendingId();
   }
 
-  function endGame() {
-    setTimeout(async () => {
-      if (MiniKit.walletAddress == null) {
-        return;
-      }
-      setisPlaying(true);
-      setSendingTransaction(false);
-      setSettleBetResult(true);
-      const { data, pendingId, error } = await settleBet.settleBet(
-        game,
-        MiniKit.walletAddress
-      );
+  async function endGame() {
+    if (MiniKit.walletAddress == null) {
+      return;
+    }
+    setisPlaying(true);
+    setSendingTransaction(false);
+    setSettleBetResult(true);
+    const { data, pendingId, error } = await settleBet.settleBet(
+      game,
+      MiniKit.walletAddress
+    );
 
-      // console.log("Transaction :", data);
+    // console.log("Transaction :", data);
 
-      const flipContract = await web3Client.getContract(game, ABIFlip);
-      const betData = await flipContract.bets(Number(pendingId) - 1);
-      // console.log(betData);
-      const formattedBet: Bet = {
-        choice: betData.choice,
-        winResult: Boolean(betData.winResult),
-        placeBlockNumber: BigInt(betData.placeBlockNumber),
-        amount: BigInt(betData.amount),
-        winAmount: BigInt(betData.winAmount),
-        player: betData.player,
-        token: betData.token,
-        isSettled: betData.isSettled,
-      };
-      // if (formattedBet.isSettled === true) {
-      setSettleBetResult(false);
-      setCurrentBet(formattedBet);
-      console.log("formattedBet.winResult", formattedBet.winResult);
-      console.log("formattedBet.choice", formattedBet.choice);
+    const flipContract = await web3Client.getContract(game, ABIFlip);
+    const betData = await flipContract.bets(Number(pendingId) - 1);
+    // console.log(betData);
+    const formattedBet: Bet = {
+      choice: betData.choice,
+      winResult: Boolean(betData.winResult),
+      placeBlockNumber: BigInt(betData.placeBlockNumber),
+      amount: BigInt(betData.amount),
+      winAmount: BigInt(betData.winAmount),
+      player: betData.player,
+      token: betData.token,
+      isSettled: betData.isSettled,
+    };
+    // if (formattedBet.isSettled === true) {
+    setSettleBetResult(false);
+    setCurrentBet(formattedBet);
+    console.log("formattedBet.winResult", formattedBet.winResult);
+    console.log("formattedBet.choice", formattedBet.choice);
 
-      if (formattedBet.isSettled === true) {
-        if (formattedBet.winResult === true) {
-          if (formattedBet.choice) {
-            setBg(6);
-          } else {
-            console.log("win 5 ");
-            setBg(5);
-          }
+    if (formattedBet.isSettled === true) {
+      if (formattedBet.winResult === true) {
+        if (formattedBet.choice) {
+          setBg(6);
         } else {
-          if (formattedBet.choice) {
-            setBg(4);
-          } else {
-            setBg(3);
-          }
+          console.log("win 5 ");
+          setBg(5);
         }
-        setisPlaying(false);
-        setTimeout(() => {
-          setResultModal(true);
-        }, 700);
       } else {
-        setSettleBetResult(false);
-        setisPlaying(false);
-        resetInitialState();
+        if (formattedBet.choice) {
+          setBg(4);
+        } else {
+          setBg(3);
+        }
       }
+      setisPlaying(false);
+      setTimeout(() => {
+        setResultModal(true);
+      }, 700);
+    } else {
+      setSettleBetResult(false);
+      setisPlaying(false);
+      resetInitialState();
+    }
 
-      console.log("Current bet:", formattedBet);
-    }, 10);
+    console.log("Current bet:", formattedBet);
   }
 
   function resetInitialState() {
