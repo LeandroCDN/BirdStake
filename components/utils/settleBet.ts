@@ -16,55 +16,66 @@ class SettleBet {
     async settleBet(gameAddress: string, userAddress: string) {
         console.log("Calling back...");
 
-        // Wait for 6 seconds before proceeding
-        await new Promise(resolve => setTimeout(resolve, 7000));
+        const maxAttempts = 15;
+        let attempts = 0;
+        let pendingId = 0;
 
-        // Obtener el pendingId
-        const pendingId = await this.getPending(gameAddress, userAddress);
+        // Reintenta obtener pendingId cada 1 segundo hasta un máximo de 15 veces
+        while (attempts < maxAttempts) {
+            pendingId = await this.getPending(gameAddress, userAddress);
+            console.log(`Checking pendingId (attempt ${attempts + 1}):`, pendingId);
 
-        if (pendingId != 0) {
-            try {
-                if (!gameAddress) {
-                    throw new Error(
-                        "NEXT_PUBLIC_MINE_ADDRESS environment variable is not set"
-                    );
-                }
-
-                const contract = new ethers.Contract(gameAddress, FlipABI, provider);
-
-                // Llamar a la API
-                const res = await fetch(
-                    `/api/ejecute-bet?pendingId=${Number(pendingId) - 1}`,
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                    }
-                );
-
-                if (!res.ok) {
-                    throw new Error("Error en la solicitud al servidor");
-                }
-
-                const data = await res.json();
-
-                // Validar la respuesta
-                if (data.receipt && data.receipt.status === 1) {
-                    return { data, pendingId }; // Devolver data y pendingId en caso de éxito
-                } else {
-                    console.error("La transacción falló o no se minó correctamente.");
-                    return { error: "La transacción falló", pendingId };
-                }
-            } catch (error) {
-                console.error("Error al ejecutar carrera:", error);
-                return { error, pendingId }; // Incluir pendingId incluso en caso de error
+            if (pendingId !== 0) {
+                console.log("PendingId found:", pendingId);
+                break;
             }
-        } else {
-            return { error: "No pending transaction found", pendingId: null };
+
+            attempts++;
+            // Espera 1 segundo antes de volver a intentar
+            await new Promise((resolve) => setTimeout(resolve, 1000));
         }
 
+        // Si después de los intentos no se encontró pendingId, se retorna un error
+        if (pendingId === 0) {
+            return { error: "No pending transaction found after maximum attempts", pendingId: null };
+        }
+
+        try {
+            if (!gameAddress) {
+                throw new Error("NEXT_PUBLIC_MINE_ADDRESS environment variable is not set");
+            }
+
+            // Inicializar el contrato (asumiendo que provider y FlipABI están definidos)
+            const contract = new ethers.Contract(gameAddress, FlipABI, provider);
+
+            // Llamar a la API usando el pendingId encontrado (restando 1 si es necesario)
+            const res = await fetch(`/api/ejecute-bet?pendingId=${Number(pendingId) - 1}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!res.ok) {
+                throw new Error("Error en la solicitud al servidor");
+            }
+
+            const data = await res.json();
+
+            // Validar la respuesta de la API
+            if (data.receipt && data.receipt.status === 1) {
+                return { data, pendingId }; // Éxito: se devuelve la data y el pendingId
+            } else {
+                console.error("La transacción falló o no se minó correctamente.");
+                return { error: "La transacción falló", pendingId };
+            }
+        } catch (error) {
+            console.error("Error al ejecutar carrera:", error);
+            return { error, pendingId };
+        }
     }
+
+
 
 
 

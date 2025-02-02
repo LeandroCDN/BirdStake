@@ -203,7 +203,7 @@ export default function Game() {
       }
 
       console.log("Current bet:", formattedBet);
-    }, 500);
+    }, 1000);
   }
 
   function resetInitialState() {
