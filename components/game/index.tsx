@@ -151,7 +151,7 @@ export default function Game() {
 
     if (pendingId != 0) {
       console.log("Launching game with pendingId:", pendingId);
-      endGame();
+      await endGame();
     } else {
       setTimeout(fectchPendingId, 1000); // Vuelve a consultar en 1 segundo
     }
