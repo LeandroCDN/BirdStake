@@ -62,7 +62,7 @@ export async function POST(_request: NextRequest) {
         }
       }
     } catch (error) {
-      console.error(`Error on attempt ${attempts}:`, error);
+      console.error(`Error on attempt ${attempts} if ${pendingId}:`, error);
       console.error(`feeData :`, feeData);
       if (attempts > maxRetries) {
         return NextResponse.json({
