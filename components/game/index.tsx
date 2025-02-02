@@ -123,7 +123,7 @@ export default function Game() {
         selectedToken
       );
       if (response?.finalPayload?.status === "success") {
-        fectchPendingId();
+        await fectchPendingId();
       } else {
         const e = new Error(response.finalPayload?.error_code);
         console.log("ERROR", e);
