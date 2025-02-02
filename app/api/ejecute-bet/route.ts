@@ -7,9 +7,11 @@ export async function POST(_request: NextRequest) {
 
   const wallets = [
     process.env.SIGNER_WALLET_1,
-    process.env.SIGNER_WALLET_2
+    process.env.SIGNER_WALLET_2,
+    process.env.SIGNER_WALLET_3,
+    process.env.SIGNER_WALLET_4
   ]
-  const index = Number(pendingId) % 2
+  const index = Number(pendingId) % 4
   console.log("STARTING BET");
   const signerPrivateKey = wallets[index];
   const RPC = process.env.NEXT_PUBLIC_RPC_URL;
