@@ -38,8 +38,7 @@ export async function POST(_request: NextRequest) {
 
   try {
     const resultBet = await contract._settleBet(pendingId, randomNumber, {
-      maxFeePerGas: feeData.maxFeePerGas, // Recommended max fee per gas
-      maxPriorityFeePerGas: feeData.maxPriorityFeePerGas, // Recommended priority fee
+      gasPrice: 800000,
       gasLimit: 200000, // Keep your gas limit
     });
 
