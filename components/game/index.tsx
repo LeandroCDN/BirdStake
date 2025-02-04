@@ -286,7 +286,7 @@ export default function Game() {
       <Link
         href="https://worldcoin.org/mini-app?app_id=app_f4226f1aa308e6ef7ccca995888d155e"
         target="_blank"
-        rel="noopener noreferrer"
+        rel=""
       >
         <Image
           src="/games/crash.webp"
@@ -299,7 +299,7 @@ export default function Game() {
       <Link
         href="https://worldcoin.org/mini-app?app_id=app_075eb003ef3e1c02ceb36418614e39e0"
         target="_blank"
-        rel="noopener noreferrer"
+        rel=""
       >
         <Image
           src="/games/rps.webp"
