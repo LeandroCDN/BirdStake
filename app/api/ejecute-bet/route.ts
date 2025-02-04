@@ -29,49 +29,34 @@ export async function POST(_request: NextRequest) {
   const contract = new ethers.Contract(ganeContract, ABI, signer);
 
   const maxRetries = 2;
-  let attempts = 0;
+  let attempts = 2;
   let transactionSuccessful = false;
 
-  while (attempts <= maxRetries && !transactionSuccessful) {
-    attempts++;
-    console.log(`Attempt ${attempts} to settle bet... ${pendingId}`);
-    const feeData = await provider.getFeeData()
+  attempts++;
+  console.log(`Attempt ${attempts} to settle bet... ${pendingId}`);
+  const feeData = await provider.getFeeData()
 
-    try {
-      const resultBet = await contract._settleBet(pendingId, randomNumber, {
-        maxFeePerGas: feeData.maxFeePerGas, // Recommended max fee per gas
-        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas, // Recommended priority fee
-        gasLimit: 200000, // Keep your gas limit
+  try {
+    const resultBet = await contract._settleBet(pendingId, randomNumber, {
+      maxFeePerGas: feeData.maxFeePerGas, // Recommended max fee per gas
+      maxPriorityFeePerGas: feeData.maxPriorityFeePerGas, // Recommended priority fee
+      gasLimit: 200000, // Keep your gas limit
+    });
+
+    console.log("Transaction sent. Waiting for receipt...");
+
+    return NextResponse.json({
+      message: "Transaction sent",
+      txHash: resultBet.hash, // Devuelves el hash de la transacción
+    });
+  } catch (error) {
+    console.error(`Error on attempt ${attempts} if ${pendingId}:`, error);
+    console.error(`feeData :`, feeData);
+    if (attempts > maxRetries) {
+      return NextResponse.json({
+        error: "Transaction failed after maximum retries",
+        details: (error as any).message,
       });
-
-      console.log("Transaction sent. Waiting for receipt...");
-
-      const receipt = await resultBet.wait();
-      if (receipt.status === 1) {
-        console.log("Transaction mined successfully:", receipt);
-        transactionSuccessful = true;
-
-        return NextResponse.json({
-          message: "Transaction succeeded",
-          receipt,
-        });
-      } else {
-        console.error("Transaction failed:", receipt);
-        if (attempts > maxRetries) {
-          return NextResponse.json({
-            error: "Transaction failed after maximum retries",
-          });
-        }
-      }
-    } catch (error) {
-      console.error(`Error on attempt ${attempts} if ${pendingId}:`, error);
-      console.error(`feeData :`, feeData);
-      if (attempts > maxRetries) {
-        return NextResponse.json({
-          error: "Transaction failed after maximum retries",
-          details: (error as any).message,
-        });
-      }
     }
   }
 

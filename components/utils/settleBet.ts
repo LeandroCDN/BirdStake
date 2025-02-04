@@ -44,9 +44,9 @@ class SettleBet {
                 }
 
                 const data = await res.json();
-
+                const receipt = await provider.waitForTransaction(data.txHash);
                 // Validar la respuesta
-                if (data.receipt && data.receipt.status === 1) {
+                if (receipt && receipt.status === 1) {
                     return { data, pendingId }; // Devolver data y pendingId en caso de éxito
                 } else {
                     console.error("La transacción falló o no se minó correctamente.");
