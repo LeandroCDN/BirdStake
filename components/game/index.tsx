@@ -279,6 +279,37 @@ export default function Game() {
     </div>
   );
 
+  const Games = (
+    <div className="flex flex-col gap-2 absolute top-[5.5em] right-2">
+      <Link
+        href="https://worldcoin.org/mini-app?app_id=app_f4226f1aa308e6ef7ccca995888d155e"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <Image
+          src="/games/crash.webp"
+          alt="crash"
+          width={50}
+          height={50}
+          className="max-w-[90%] border-[1.7px] bg-white rounded-md border-white"
+        />
+      </Link>
+      <Link
+        href="https://worldcoin.org/mini-app?app_id=app_075eb003ef3e1c02ceb36418614e39e0"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <Image
+          src="/games/rps.webp"
+          alt="rps"
+          width={50}
+          height={50}
+          className="max-w-[90%] border-[1.7px] rounded-md border-white"
+        />
+      </Link>
+    </div>
+  );
+
   return (
     <div
       className="p-4 flex flex-col justify-between"
@@ -312,6 +343,7 @@ export default function Game() {
         </section>
       </div>
       {SocialIcons}
+      {Games}
       <div className="space-y-1">
         <div className="flex justify-center items-center">
           <button
