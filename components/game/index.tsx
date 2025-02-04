@@ -13,6 +13,7 @@ import SendTxModal from "./sendTransactionModal";
 import { ethers } from "ethers";
 import TxLimitModal from "./txLimitModal";
 import PointsInfo from "./pointsInfo";
+import PushModal from "./pushModal";
 
 type Move = "LEFT" | "RIGHT";
 const MOVES: Move[] = ["LEFT", "RIGHT"];
@@ -55,6 +56,7 @@ export default function Game() {
   const [resultModal, setResultModal] = useState(false);
   const [txLimitModal, setTxLimitModal] = useState(false);
   const [pointsModal, setPointsModal] = useState(false);
+  const [pushModal, setPushModal] = useState(true);
   const [bg, setBg] = useState(0);
   const bgImages = [
     "/bgs/0.webp",
@@ -291,7 +293,7 @@ export default function Game() {
           alt="crash"
           width={50}
           height={50}
-          className="max-w-[90%] border-[1.7px] bg-white rounded-md border-white"
+          className="max-w-[90%] border-[1.7px] bg-white rounded-md border-black"
         />
       </Link>
       <Link
@@ -304,7 +306,7 @@ export default function Game() {
           alt="rps"
           width={50}
           height={50}
-          className="max-w-[90%] border-[1.7px] rounded-md border-white"
+          className="max-w-[90%] border-[1.7px] rounded-md border-black"
         />
       </Link>
     </div>
@@ -482,6 +484,15 @@ export default function Game() {
           points={Number(points)}
           resultMessage="Play on Birdgames to get more points!"
           onClose={() => setPointsModal(false)}
+        />
+      )}
+
+      {pushModal && (
+        <PushModal
+          title="El titulo"
+          points={Number(points)}
+          resultMessage="Un mensaje random"
+          onClose={() => setPushModal(false)}
         />
       )}
     </div>
