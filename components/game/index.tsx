@@ -148,9 +148,10 @@ export default function Game() {
       if (MiniKit.walletAddress == null) {
         return;
       }
-      const pendingId = await settleBet.getPending(
-        game,
-        MiniKit?.walletAddress
+      const flipContract = await web3Client.getContract(game, ABIFlip);
+
+      const pendingId = await flipContract.pendingIdsPerPlayer(
+        MiniKit.walletAddress
       );
 
       if (pendingId != 0) {
