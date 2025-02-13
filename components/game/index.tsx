@@ -297,7 +297,7 @@ export default function Game() {
         />
       </Link>
       <Link
-        href="http://worldcoin.org/mini-app?app_22aab9b718f16cb32505b5df816f65f5"
+        href="https://worldcoin.org/mini-app?app_id=app_22aab9b718f16cb32505b5df816f65f5"
         target="_blank"
         rel=""
       >
