@@ -296,7 +296,7 @@ export default function Game() {
           className="max-w-[90%] border-[1.7px] bg-white rounded-md border-black"
         />
       </Link>
-      <Link
+      {/* <Link
         href="https://worldcoin.org/mini-app?app_id=app_22aab9b718f16cb32505b5df816f65f5"
         target="_blank"
         rel=""
@@ -308,7 +308,7 @@ export default function Game() {
           height={50}
           className="max-w-[90%] border-[1.7px] rounded-md border-black"
         />
-      </Link>
+      </Link> */}
     </div>
   );
 
