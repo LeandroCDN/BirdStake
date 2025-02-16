@@ -56,7 +56,7 @@ export default function Game() {
   const [resultModal, setResultModal] = useState(false);
   const [txLimitModal, setTxLimitModal] = useState(false);
   const [pointsModal, setPointsModal] = useState(false);
-  const [pushModal, setPushModal] = useState(false);
+  const [pushModal, setPushModal] = useState(true);
   const [bg, setBg] = useState(0);
   const bgImages = [
     "/bgs/0.webp",
