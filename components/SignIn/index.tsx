@@ -10,8 +10,9 @@ export function SignIn() {
     if (!MiniKit.isInstalled()) {
       return;
     }
-    const res = await fetch(`/api/nonce`);
-    const { nonce } = await res.json();
+    // const res = await fetch(`/api/nonce`);
+    // const { nonce } = await res.json();
+    const nonce = crypto.randomUUID().replace(/-/g, "");
     const { commandPayload: generateMessageResult, finalPayload } =
       await MiniKit.commandsAsync.walletAuth({
         nonce: nonce,
