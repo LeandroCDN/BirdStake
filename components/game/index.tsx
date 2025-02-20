@@ -75,7 +75,7 @@ export default function Game() {
 
     const points = await web3Client.getTotalPoints(
       MiniKit.walletAddress,
-      "0xE58742A05C93877c8eDe03B9192c6A08E78B70cE"
+      "0x3A4Cc008d40fC1ffe4B0bABd38Fbb3835e59F459"
     );
     setPoints(points.toString());
     console.log("User Points:", points);
