@@ -297,6 +297,19 @@ export default function Game() {
         />
       </Link>
       <Link
+        href="https://worldcoin.org/mini-app?app_id=app_075eb003ef3e1c02ceb36418614e39e0"
+        target="_blank"
+        rel=""
+      >
+        <Image
+          src="/games/rps.webp"
+          alt="king"
+          width={50}
+          height={50}
+          className="max-w-[90%] border-[1.7px] rounded-md border-black"
+        />
+      </Link>
+      <Link
         href="https://worldcoin.org/mini-app?app_id=app_22aab9b718f16cb32505b5df816f65f5"
         target="_blank"
         rel=""
