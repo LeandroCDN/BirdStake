@@ -56,7 +56,7 @@ export default function Game() {
   const [resultModal, setResultModal] = useState(false);
   const [txLimitModal, setTxLimitModal] = useState(false);
   const [pointsModal, setPointsModal] = useState(false);
-  const [pushModal, setPushModal] = useState(false);
+  const [pushModal, setPushModal] = useState(true);
   const [bg, setBg] = useState(0);
   const bgImages = [
     "/bgs/0.webp",
@@ -297,12 +297,12 @@ export default function Game() {
         />
       </Link>
       <Link
-        href="https://worldcoin.org/mini-app?app_id=app_075eb003ef3e1c02ceb36418614e39e0"
+        href="https://worldcoin.org/mini-app?app_id=app_b67c3e1ab1f44f3533b234a53d5a156d"
         target="_blank"
         rel=""
       >
         <Image
-          src="/games/rps.webp"
+          src="/games/box.webp"
           alt="king"
           width={50}
           height={50}
