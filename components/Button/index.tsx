@@ -39,7 +39,7 @@ export default function Button({
   };
   //
   const sizes = {
-    sm: "px-2 text-sm",
+    sm: " text-sm ",
     md: "h-14 px-6 py-1 text-3xl",
     lg: "h-16 px-8 py-1 text-5xl",
   };

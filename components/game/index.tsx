@@ -17,10 +17,16 @@ import PushModal from "./pushModal";
 
 type Move = "LEFT" | "RIGHT";
 const MOVES: Move[] = ["LEFT", "RIGHT"];
-type WLD = 0.15 | 0.3 | 0.5 | 1 | 2 | 5;
-type USDC = 0.25 | 0.5 | 1 | 2 | 4 | 10;
-const WLD_AMOUNT_OPTIONS: WLD[] = [0.15, 0.3, 0.5, 1, 2, 5];
-const USDC_AMOUNT_OPTIONS: USDC[] = [0.25, 0.5, 1, 2, 4, 10];
+type WLD = 0.15 | 0.3 | 0.5 | 1 | 2 | 5 | 10 | 20;
+type USDC = 0.25 | 0.5 | 1 | 2 | 5 | 10 | 20 | 50;
+type GEMS = 5 | 10 | 20 | 50 | 100 | 200 | 500 | 1000;
+type ORO = 1 | 8 | 16 | 32 | 64 | 128 | 248 | 512;
+type DNA = 1 | 8 | 16 | 32 | 64 | 128 | 248 | 512;
+const WLD_AMOUNT_OPTIONS: WLD[] = [0.15, 0.3, 0.5, 1, 2, 5, 10, 20];
+const USDC_AMOUNT_OPTIONS: USDC[] = [0.25, 0.5, 1, 2, 5, 10, 20, 50];
+const GEMS_AMOUNT_OPTIONS: GEMS[] = [5, 10, 20, 50, 100, 200, 500, 1000];
+const ORO_AMOUNT_OPTIONS: ORO[] = [1, 8, 16, 32, 64, 128, 248, 512];
+const DNA_AMOUNT_OPTIONS: DNA[] = [1, 8, 16, 32, 64, 128, 248, 512];
 
 interface Bet {
   choice: boolean; // uint40
@@ -40,15 +46,23 @@ interface Goals {
 export default function Game() {
   const usdc = "0x79A02482A880bCE3F13e09Da970dC34db4CD24d1";
   const wld = "0x2cFc85d8E48F8EAB294be644d9E25C3030863003";
+  const gems = "0xAD3eE0342CB753C2B39579F9dB292A9Ae94b153E";
+  const oro = "0xcd1E32B86953D79a6AC58e813D2EA7a1790cAb63";
+  const dna = "0xED49fE44fD4249A09843C2Ba4bba7e50BECa7113";
   const game = "0x6A84107E72d20E310598f5346abF7e92280CF672";
   const [points, setPoints] = useState("0");
   const [wldBalance, setWldBalance] = useState("0");
-  const [selectedAmount, setSelectedAmount] = useState<WLD | USDC>(1);
+  const [usdcBalance, setUsdcBalance] = useState(0);
+  const [gemsBalance, setGemsBalance] = useState(0);
+  const [oroBalance, setOroBalance] = useState(0);
+  const [dnaBalance, setDNABalance] = useState(0);
+  const [selectedAmount, setSelectedAmount] = useState<
+    WLD | USDC | GEMS | ORO | DNA
+  >(1);
   const [selectedMove, setSelectedMove] = useState<Move | null>();
   const [currentBet, setCurrentBet] = useState<Bet | null>(null);
   const [goals, setGoals] = useState<Goals | null>(null);
   const [selectedToken, setSelectedToken] = useState(wld);
-  const [usdcBalance, setUsdcBalance] = useState(0);
   const [pendingBets, setPendingBets] = useState(0);
   const [isPlaying, setisPlaying] = useState(false);
   const [sendingTransaction, setSendingTransaction] = useState(false);
@@ -73,24 +87,36 @@ export default function Game() {
       return;
     }
 
-    const points = await web3Client.getTotalPoints(
-      MiniKit.walletAddress,
-      "0xC719ee5644f203Aa3E17F7b82509E8368B7d64A8"
-    );
-    setPoints(points.toString());
-    console.log("User Points:", points);
-
     const wldBalanceOF = await web3Client.fetchERC20Balance(
       MiniKit.walletAddress,
       wld
     );
-
     setWldBalance(wldBalanceOF);
-    await setUsdcBalance(
-      parseFloat(
-        await web3Client.fetchERC20Balance(MiniKit.walletAddress, usdc, 6)
-      )
+
+    const usdcBalanceOF = await web3Client.fetchERC20Balance(
+      MiniKit.walletAddress,
+      usdc,
+      6
     );
+    setUsdcBalance(parseFloat(usdcBalanceOF));
+
+    const gemsBalanceOF = await web3Client.fetchERC20Balance(
+      MiniKit.walletAddress,
+      gems
+    );
+    setGemsBalance(parseFloat(gemsBalanceOF));
+
+    const oroBalanceOF = await web3Client.fetchERC20Balance(
+      MiniKit.walletAddress,
+      oro
+    );
+    setOroBalance(parseFloat(oroBalanceOF));
+
+    const dnaBalanceOF = await web3Client.fetchERC20Balance(
+      MiniKit.walletAddress,
+      dna
+    );
+    setDNABalance(parseFloat(dnaBalanceOF));
     const flipContract = await web3Client.getContract(game, ABIFlip);
     const totalGoals = await flipContract.totalGlobalGoals();
     const totalUserGames = await flipContract.playerInfo(MiniKit.walletAddress);
@@ -325,6 +351,31 @@ export default function Game() {
     </div>
   );
 
+  const TokenSelector = () => {
+    const tokens = [
+      { symbol: "WLD", address: wld, balance: wldBalance },
+      { symbol: "USDC", address: usdc, balance: usdcBalance },
+      { symbol: "GEMS", address: gems, balance: gemsBalance },
+      // { symbol: "ORO", address: oro, balance: oroBalance },
+      // { symbol: "DNA", address: dna, balance: dnaBalance },
+    ];
+
+    return (
+      <select
+        className="p-1 text-sm rounded-lg border-[1.7px] border-white bg-[#2775ca] text-white"
+        onChange={(e) => setSelectedToken(e.target.value)}
+        value={selectedToken}
+        disabled={isPlaying || pendingBets != 0}
+      >
+        {tokens.map((token) => (
+          <option key={token.symbol} value={token.address}>
+            {token.symbol} - {token.balance}
+          </option>
+        ))}
+      </select>
+    );
+  };
+
   return (
     <div
       className="p-4 flex flex-col justify-between"
@@ -337,42 +388,35 @@ export default function Game() {
         opacity: 1,
       }}
     >
-      <div className="flex flex-row justify-between  w-full ">
-        <div className="flex gap-4  min-w-[57%] bg-gradient-to-b from-[#ffe500] to-[#ff8a00] rounded-lg border-white border-[1.7px] mr-2">
+      <div className="flex flex-row justify-between w-full">
+        <div className="flex gap-4 min-w-[57%] bg-gradient-to-b from-[#ffe500] to-[#ff8a00] rounded-lg border-white border-[1.7px] mr-2">
           <div className="flex flex-row justify-between items-center text-white w-full px-2 py-1">
             <img src="/ball.webp" alt="WLD Logo" className="w-8 h-8" />
             <p className="text-3xl"> {goals?.totalGoals}</p>
-            <div className="flex flex-col text-base ">
+            <div className="flex flex-col text-base">
               <p className="p-0 mb-[-5px]"> Total</p>
               <p className="p-0 mt-[-5px]"> Goals</p>
             </div>
           </div>
         </div>
         <section className="flex flex-row items-center justify-between px-2 gap-2 bg-gradient-to-b from-[#ffe500] to-[#ff8a00] border-white border-[1.7px] rounded-lg max-w-[40%] min-w-[40%] w-[40%]">
-          <p className="text-white text-xl">
-            {selectedToken === wld ? "$WLD" : "$USDC"}
-          </p>
           <p className="text-white text-xl text-right">
-            {selectedToken === wld ? wldBalance : usdcBalance}
+            {selectedToken === wld
+              ? "WLD " + wldBalance
+              : selectedToken === usdc
+              ? "USDC " + usdcBalance
+              : selectedToken === gems
+              ? "GEMS " + gemsBalance
+              : selectedToken === oro
+              ? "ORO " + oroBalance
+              : "DNA " + dnaBalance}
           </p>
         </section>
       </div>
       {SocialIcons}
       {Games}
       <div className="space-y-1">
-        <div className="flex justify-center items-center">
-          <button
-            onClick={() => setPointsModal(true)}
-            className="text-black/50 text-sm flex items-center space-x-1"
-          >
-            <span>{points.toString()}</span>
-            <img
-              src="/info.svg"
-              alt="info icon text-black/50"
-              className="w-4 h-4"
-            />
-          </button>
-        </div>
+        <TokenSelector />
         <div className="grid grid-cols-2 gap-2">
           {MOVES.map((move) => (
             <Button
@@ -392,60 +436,41 @@ export default function Game() {
             </Button>
           ))}
         </div>
-        <div className="grid grid-cols-[1fr,3fr] gap-2 overflow-hidden">
-          <div
-            className={`relative text-white flex flex-col bg-bl ${
-              selectedToken === wld ? "bg-[#2775ca]" : "bg-[#3b3b3b]"
-            } border-[1.7px] border-white rounded-lg p-2 font-medium transition-all duration-200 ease-in-out overflow-hidden`}
-          >
-            <button
-              onClick={() => {
-                selectedToken == wld
-                  ? setSelectedToken(usdc)
-                  : setSelectedToken(wld);
-              }}
-              className="relative text-base text-center z-20"
-              disabled={isPlaying || pendingBets != 0}
-            >
-              {selectedToken === wld ? "PLAY IN USDC" : "PLAY IN WLD"}
-            </button>
-            {/* Imagen posicionada */}
+        <div className="grid gap-2 overflow-hidden">
+          <div className="grid grid-cols-4 gap-1">
+            {(selectedToken === wld
+              ? WLD_AMOUNT_OPTIONS
+              : selectedToken === usdc
+              ? USDC_AMOUNT_OPTIONS
+              : selectedToken === gems
+              ? GEMS_AMOUNT_OPTIONS
+              : selectedToken === oro
+              ? ORO_AMOUNT_OPTIONS
+              : DNA_AMOUNT_OPTIONS
+            ).map((amount) => (
+              <Button
+                key={amount}
+                onClick={() => {
+                  setSelectedAmount(amount);
+                }}
+                variant="primary"
+                size="sm"
+                isSelected={selectedAmount === amount}
+                disabled={isPlaying || pendingBets != 0}
+              >
+                {amount}{" "}
+                {selectedToken === wld
+                  ? "WLD"
+                  : selectedToken === usdc
+                  ? "USDC"
+                  : selectedToken === gems
+                  ? "GEMS"
+                  : selectedToken === oro
+                  ? "ORO"
+                  : "DNA"}
+              </Button>
+            ))}
           </div>
-          {selectedToken === wld ? (
-            <div className="grid grid-cols-3 gap-2">
-              {WLD_AMOUNT_OPTIONS.map((wldd) => (
-                <Button
-                  key={wldd}
-                  onClick={() => {
-                    setSelectedAmount(wldd);
-                  }}
-                  variant="primary"
-                  size="sm"
-                  isSelected={selectedAmount === wldd}
-                  disabled={isPlaying || pendingBets != 0}
-                >
-                  {wldd} {selectedToken === wld ? "WLD" : "USDC"}
-                </Button>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-2">
-              {USDC_AMOUNT_OPTIONS.map((wldd) => (
-                <Button
-                  key={wldd}
-                  onClick={() => {
-                    setSelectedAmount(wldd);
-                  }}
-                  variant="primary"
-                  size="sm"
-                  isSelected={selectedAmount === wldd}
-                  disabled={isPlaying}
-                >
-                  {wldd} {selectedToken === wld ? "WLD" : "USDC"}
-                </Button>
-              ))}
-            </div>
-          )}
         </div>
         <Button
           onClick={pendingBets == 0 ? handleShoot : endGame}
@@ -466,10 +491,21 @@ export default function Game() {
           title={currentBet?.winResult ? "GOOOAL!" : "MISSED!"}
           resultMessage={
             currentBet?.winResult
-              ? selectedToken === wld
+              ? selectedToken === usdc
                 ? "YOU WON " +
-                  `${ethers.formatEther(currentBet?.winAmount || 0)}`
-                : "YOU WON " + `${Number(currentBet?.winAmount || 0) / 10 ** 6}`
+                  `${Number(currentBet?.winAmount || 0) / 10 ** 6}` +
+                  " USDC"
+                : "YOU WON " +
+                  `${ethers.formatEther(currentBet?.winAmount || 0)}` +
+                  `${
+                    selectedToken === wld
+                      ? " $WLD"
+                      : selectedToken === gems
+                      ? " $GEMS"
+                      : selectedToken === oro
+                      ? " $ORO"
+                      : ""
+                  }`
               : "YOUR SHOT WAS SAVED"
           }
           result={currentBet?.winResult ?? false}

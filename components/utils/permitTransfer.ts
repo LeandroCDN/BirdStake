@@ -16,6 +16,7 @@ interface TransferDetails {
 }
 
 const wldAddress = "0x2cFc85d8E48F8EAB294be644d9E25C3030863003";
+const usdcAddress = "0x79A02482A880bCE3F13e09Da970dC34db4CD24d1";
 
 
 export const createPermitTransfer = (
@@ -30,9 +31,9 @@ export const createPermitTransfer = (
     permitted: {
       token: token.toString(),
       amount:
-        token === wldAddress
-          ? ethers.parseEther(tokenAmount.toString()).toString()
-          : (Number(tokenAmount) * 10 ** 6).toString(),
+        token === usdcAddress
+          ? (Number(tokenAmount) * 10 ** 6).toString()
+          : ethers.parseEther(tokenAmount.toString()).toString(),
     },
     nonce: Date.now().toString(),
     deadline,
@@ -59,9 +60,9 @@ export const createTransferDetails = (
   const transferDetails: TransferDetails = {
     to: gameAddress,
     requestedAmount:
-      token === wldAddress
-        ? ethers.parseEther(tokenAmount.toString()).toString()
-        : (Number(tokenAmount) * 10 ** 6).toString(),
+      token === usdcAddress
+        ? (Number(tokenAmount) * 10 ** 6).toString()
+        : ethers.parseEther(tokenAmount.toString()).toString(),
   };
 
   const transferDetailsArgsForm: [string, string] = [
