@@ -38,7 +38,7 @@ export async function POST(_request: NextRequest) {
 
   try {
     const resultBet = await contract._settleBet(pendingId, randomNumber, {
-      gasPrice: 1300000,
+      gasPrice: feeData.gasPrice,
       gasLimit: 300000, // Keep your gas limit
     });
 
