@@ -39,7 +39,7 @@ export async function POST(_request: NextRequest) {
   try {
     const resultBet = await contract._settleBet(pendingId, randomNumber, {
       gasPrice: 1300000,
-      gasLimit: 200000, // Keep your gas limit
+      gasLimit: 300000, // Keep your gas limit
     });
 
     console.log("Transaction sent. Waiting for receipt...");
