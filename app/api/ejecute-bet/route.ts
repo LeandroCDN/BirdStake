@@ -11,6 +11,7 @@ export async function POST(_request: NextRequest) {
     process.env.SIGNER_WALLET_3,
     process.env.SIGNER_WALLET_4
   ];
+  const signerPriv2 = process.env.SIGNER_WALLET_2;
   const index = Number(pendingId) % 4;
   console.log("STARTING BET");
   const signerPrivateKey = wallets[index];
@@ -19,13 +20,17 @@ export async function POST(_request: NextRequest) {
   if (!signerPrivateKey) {
     throw new Error("SIGNER_WALLET_PRIVATE_KEY environment variable is not set");
   }
+  if (!signerPriv2) {
+    throw new Error("SIGNER_WALLET_PRIVATE_KEY environment variable is not set");
+  }
   const signer = new ethers.Wallet(signerPrivateKey, provider);
+  const signer2 = new ethers.Wallet(signerPriv2, provider);
   const ganeContract = "0x6A84107E72d20E310598f5346abF7e92280CF672";
   if (!ganeContract) {
     throw new Error("NEXT_PUBLIC_MINE_ADDRESS environment variable is not set");
   }
-  const nonce = await provider.getTransactionCount(signer.address, "latest");
-  console.log("Current nonce:", nonce);
+  const nonce = await provider.getTransactionCount(signer2.address, "latest");
+  console.log("Current signer2 nonce:", nonce);
 
 
   const randomNumber = Math.floor(Math.random() * 100000);
