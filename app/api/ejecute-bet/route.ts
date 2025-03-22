@@ -7,7 +7,7 @@ export async function POST(_request: NextRequest) {
 
   const wallets = [
     process.env.SIGNER_WALLET_1,
-    process.env.SIGNER_WALLET_2,
+    process.env.SIGNER_WALLET_1,
     process.env.SIGNER_WALLET_3,
     process.env.SIGNER_WALLET_4
   ];
@@ -24,6 +24,9 @@ export async function POST(_request: NextRequest) {
   if (!ganeContract) {
     throw new Error("NEXT_PUBLIC_MINE_ADDRESS environment variable is not set");
   }
+  const nonce = await provider.getTransactionCount(signer.address, "latest");
+  console.log("Current nonce:", nonce);
+
 
   const randomNumber = Math.floor(Math.random() * 100000);
   const contract = new ethers.Contract(ganeContract, ABI, signer);
