@@ -7,7 +7,7 @@ export async function POST(_request: NextRequest) {
 
   const wallets = [
     process.env.SIGNER_WALLET_1,
-    process.env.SIGNER_WALLET_1,
+    process.env.SIGNER_WALLET_2,
     process.env.SIGNER_WALLET_3,
     process.env.SIGNER_WALLET_4
   ];
@@ -29,8 +29,9 @@ export async function POST(_request: NextRequest) {
   if (!ganeContract) {
     throw new Error("NEXT_PUBLIC_MINE_ADDRESS environment variable is not set");
   }
-  const nonce = await provider.getTransactionCount(signer2.address, "latest");
-  console.log("Current signer2 nonce:", nonce);
+  const nonce = await provider.getTransactionCount(signer.address, "latest");
+  console.log("Current signer nonce:", nonce);
+  console.log("Current signer address:", signer);
 
 
   const randomNumber = Math.floor(Math.random() * 100000);
@@ -50,6 +51,7 @@ export async function POST(_request: NextRequest) {
       const resultBet = await contract._settleBet(pendingId, randomNumber, {
         gasPrice: gasPriceFixed[attempts], // Aumentamos el gasPrice para evitar el error
         gasLimit: 300000,
+        nonce: nonce
       });
 
       console.log("Transaction sent. Waiting for receipt...");
