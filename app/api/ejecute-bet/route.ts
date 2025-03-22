@@ -29,9 +29,9 @@ export async function POST(_request: NextRequest) {
   if (!ganeContract) {
     throw new Error("NEXT_PUBLIC_MINE_ADDRESS environment variable is not set");
   }
-  const nonce = await provider.getTransactionCount(signer.address, "latest");
-  console.log("Current signer nonce:", nonce);
-  console.log("Current signer address:", signer);
+  // const nonce = await provider.getTransactionCount(signer.address, "latest");
+  // console.log("Current signer nonce:", nonce);
+  // console.log("Current signer address:", signer);
 
 
   const randomNumber = Math.floor(Math.random() * 100000);
@@ -47,6 +47,7 @@ export async function POST(_request: NextRequest) {
     const feeData = await provider.getFeeData();
     const gasPrice = feeData.gasPrice ?? BigInt(0);
     const gasPriceFixed = [gasPrice, gasPrice + BigInt(100000), gasPrice + BigInt(600000)];
+    const nonce = await provider.getTransactionCount(signer.address, "latest");
     try {
       const resultBet = await contract._settleBet(pendingId, randomNumber, {
         gasPrice: gasPriceFixed[attempts], // Aumentamos el gasPrice para evitar el error
