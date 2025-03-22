@@ -10,8 +10,8 @@ export async function POST(_request: NextRequest) {
     process.env.SIGNER_WALLET_2,
     process.env.SIGNER_WALLET_3,
     process.env.SIGNER_WALLET_4
-  ]
-  const index = Number(pendingId) % 4
+  ];
+  const index = Number(pendingId) % 4;
   console.log("STARTING BET");
   const signerPrivateKey = wallets[index];
   const RPC = process.env.NEXT_PUBLIC_RPC_URL;
@@ -28,35 +28,45 @@ export async function POST(_request: NextRequest) {
   const randomNumber = Math.floor(Math.random() * 100000);
   const contract = new ethers.Contract(ganeContract, ABI, signer);
 
-  const maxRetries = 2;
-  let attempts = 2;
+  const maxRetries = 3;
+  let attempts = 0;
   let transactionSuccessful = false;
 
-  attempts++;
-  console.log(`Attempt ${attempts} to settle bet... ${pendingId}`);
-  const feeData = await provider.getFeeData()
+  while (attempts < maxRetries && !transactionSuccessful) {
 
-  try {
-    const resultBet = await contract._settleBet(pendingId, randomNumber, {
-      gasPrice: feeData.gasPrice,
-      gasLimit: 300000, // Keep your gas limit
-    });
-
-    console.log("Transaction sent. Waiting for receipt...");
-
-    return NextResponse.json({
-      message: "Transaction sent",
-      txHash: resultBet.hash, // Devuelves el hash de la transacción
-    });
-  } catch (error) {
-    console.error(`Error on attempt ${attempts} if ${pendingId}:`, error);
-    console.error(`feeData :`, feeData);
-    if (attempts > maxRetries) {
-      return NextResponse.json({
-        error: "Transaction failed after maximum retries",
-        details: (error as any).message,
+    console.log(`Attempt ${attempts} to settle bet... ${pendingId}`);
+    const feeData = await provider.getFeeData();
+    const gasPrice = feeData.gasPrice ?? BigInt(0);
+    const gasPriceFixed = [gasPrice, gasPrice + BigInt(100000), gasPrice + BigInt(600000)];
+    try {
+      const resultBet = await contract._settleBet(pendingId, randomNumber, {
+        gasPrice: gasPriceFixed[attempts], // Aumentamos el gasPrice para evitar el error
+        gasLimit: 300000,
       });
+
+      console.log("Transaction sent. Waiting for receipt...");
+      transactionSuccessful = true;
+
+      return NextResponse.json({
+        message: "Transaction sent",
+        txHash: resultBet.hash,
+      });
+    } catch (error: any) {
+      console.error(`Error on attempt ${attempts} for ${pendingId}:`, error);
+
+      if (error.code === 'REPLACEMENT_UNDERPRICED' || error.info?.error?.message === 'replacement transaction underpriced') {
+        console.log("Retrying with higher gas price...");
+        continue; // Reintenta con un gasPrice más alto
+      }
+
+      if (attempts >= maxRetries) {
+        return NextResponse.json({
+          error: "Transaction failed after maximum retries",
+          details: error.message,
+        });
+      }
     }
+    attempts++;
   }
 
   console.log("Bet is not over");
