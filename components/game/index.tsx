@@ -310,7 +310,7 @@ export default function Game() {
   const Games = (
     <div className="flex flex-col gap-2 absolute top-[5.5em] right-2">
       <Link
-        href="http://worldcoin.org/mini-app?app_id=app_f4226f1aa308e6ef7ccca995888d155e"
+        href="worldapp://mini-app?app_id=app_f4226f1aa308e6ef7ccca995888d155e"
         target=""
         rel=""
       >
@@ -323,7 +323,7 @@ export default function Game() {
         />
       </Link>
       <Link
-        href="https://worldcoin.org/mini-app?app_id=app_b67c3e1ab1f44f3533b234a53d5a156d"
+        href="worldapp://mini-app?app_id=app_b67c3e1ab1f44f3533b234a53d5a156d"
         target="_blank"
         rel=""
       >
@@ -336,7 +336,7 @@ export default function Game() {
         />
       </Link>
       <Link
-        href="https://worldcoin.org/mini-app?app_id=app_22aab9b718f16cb32505b5df816f65f5"
+        href="worldapp://mini-app?app_id=app_22aab9b718f16cb32505b5df816f65f5"
         target="_blank"
         rel=""
       >
