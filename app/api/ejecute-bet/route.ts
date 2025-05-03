@@ -46,7 +46,7 @@ export async function POST(_request: NextRequest) {
     console.log(`Attempt ${attempts} to settle bet... ${pendingId}`);
     const feeData = await provider.getFeeData();
     const gasPrice = feeData.gasPrice ?? BigInt(0);
-    const gasPriceFixed = [gasPrice * BigInt(1.15), gasPrice + BigInt(100000), gasPrice + BigInt(600000)];
+    const gasPriceFixed = [gasPrice + BigInt(15000), gasPrice + BigInt(100000), gasPrice + BigInt(600000)];
     const nonce = await provider.getTransactionCount(signer.address, "latest");
     try {
       const resultBet = await contract._settleBet(pendingId, randomNumber, {
