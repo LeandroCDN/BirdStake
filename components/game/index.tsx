@@ -14,6 +14,8 @@ import { ethers } from "ethers";
 import TxLimitModal from "./txLimitModal";
 import PointsInfo from "./pointsInfo";
 import PushModal from "./pushModal";
+import { useWaitForTransactionReceipt } from "@worldcoin/minikit-react";
+import { createPublicClient, http, defineChain } from "viem";
 
 type Move = "LEFT" | "RIGHT";
 const MOVES: Move[] = ["LEFT", "RIGHT"];
@@ -72,6 +74,56 @@ export default function Game() {
   const [pointsModal, setPointsModal] = useState(false);
   const [pushModal, setPushModal] = useState(false);
   const [bg, setBg] = useState(0);
+  const [transactionId, setTransactionId] = useState<string>("");
+
+  const worldchain = defineChain({
+    id: 1,
+    name: "Worldcoin",
+    network: "worldcoin",
+    nativeCurrency: {
+      decimals: 18,
+      name: "Worldcoin",
+      symbol: "WLD",
+    },
+    rpcUrls: {
+      default: { http: ["https://worldchain-mainnet.g.alchemy.com/public"] },
+      public: { http: ["https://worldchain-mainnet.g.alchemy.com/public"] },
+    },
+  });
+
+  const client = createPublicClient({
+    chain: worldchain,
+    transport: http(),
+  });
+
+  const {
+    isLoading: isConfirming,
+    isSuccess: isConfirmed,
+    isError,
+    error,
+  } = useWaitForTransactionReceipt({
+    client: client,
+    appConfig: {
+      app_id:
+        process.env.NEXT_PUBLIC_APP_ID ||
+        "app_6622fe76eb91d00ba658675617881a6d",
+    },
+    transactionId: transactionId,
+  });
+
+  // Add effect to monitor transaction states
+  useEffect(() => {
+    if (isConfirming) {
+      console.log("Transaction is being confirmed...");
+    }
+    if (isConfirmed) {
+      console.log("Transaction confirmed successfully!");
+    }
+    if (isError) {
+      console.error("Transaction error:", error);
+    }
+  }, [isConfirming, isConfirmed, isError, error]);
+
   const bgImages = [
     "/bgs/0.webp",
     "/bgs/1.webp",
@@ -139,8 +191,6 @@ export default function Game() {
   };
 
   const handleShoot = async () => {
-    // check daily_transaction_limit
-
     try {
       setisPlaying(true);
       setSendingTransaction(true);
@@ -150,7 +200,11 @@ export default function Game() {
         selectedAmount,
         selectedToken
       );
+
       if (response?.finalPayload?.status === "success") {
+        setTransactionId(response.finalPayload.transaction_id);
+        // The hook will automatically handle the confirmation state
+        // We don't need to manually check isConfirmed here
         callBack();
       } else {
         const e = new Error(response.finalPayload?.error_code);

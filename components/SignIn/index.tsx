@@ -6,7 +6,6 @@ import Game from "../game";
 export function SignIn() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const signInWithWallet = async () => {
-    console.log("sig in");
     if (!MiniKit.isInstalled()) {
       return;
     }
