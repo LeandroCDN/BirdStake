@@ -118,6 +118,7 @@ export default function Game() {
     }
     if (isConfirmed) {
       console.log("Transaction confirmed successfully!");
+      endGame();
     }
     if (isError) {
       console.error("Transaction error:", error);
@@ -205,7 +206,7 @@ export default function Game() {
         setTransactionId(response.finalPayload.transaction_id);
         // The hook will automatically handle the confirmation state
         // We don't need to manually check isConfirmed here
-        callBack();
+        // callBack();
       } else {
         const e = new Error(response.finalPayload?.error_code);
         console.log("ERROR", e);
