@@ -411,7 +411,7 @@ export default function Game() {
       { symbol: "WLD", address: wld, balance: wldBalance },
       { symbol: "USDC", address: usdc, balance: usdcBalance },
       { symbol: "GEMS", address: gems, balance: gemsBalance },
-      // { symbol: "ORO", address: oro, balance: oroBalance },
+      { symbol: "ORO", address: oro, balance: oroBalance },
       // { symbol: "DNA", address: dna, balance: dnaBalance },
     ];
 
