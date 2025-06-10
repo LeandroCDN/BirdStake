@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@worldcoin/minikit-js": "1.5.0",
+    "@worldcoin/minikit-js": "^1.9.5",
     "@worldcoin/minikit-react": "^1.9.2",
     "eruda": "^3.2.3",
     "ethers": "^6.13.5",

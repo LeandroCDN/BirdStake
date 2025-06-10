@@ -1,27 +1,40 @@
 import React from "react";
 
-import Image from "next/image";
 interface ModalProps {
   resultMessage: string;
-  onClose: () => void; // Cambiado el nombre a `onClose` para mayor claridad
+  onClose: () => void;
 }
 
 const SendTxModal: React.FC<ModalProps> = ({ resultMessage, onClose }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <Image
-        src="/ball.webp"
-        alt="WorldCoin"
-        width={275}
-        height={275}
-        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 grayscale-0 animate-pulse"
-      />
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      {/* Farm background animation */}
+      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-bounce">
+        <div className="text-8xl animate-pulse">🐔</div>
+      </div>
 
-      <div
-        className={`bg-black/70 text-white rounded-lg p-4 max-w-md w-full border-2  border-[#ff8a00] z-50 `}
-      >
-        <div className=" space-y-2 text-center flex flex-row">
-          <p className={`text-4xl text-white `}>{resultMessage}</p>
+      {/* Modal content */}
+      <div className="bg-gradient-to-br from-green-500 to-yellow-400 text-white rounded-xl p-6 max-w-sm w-full border-4 border-white shadow-2xl z-50 relative">
+        {/* Farm decorations */}
+        <div className="absolute -top-3 -left-3 text-3xl animate-spin">🌻</div>
+        <div className="absolute -top-3 -right-3 text-3xl animate-bounce">🌾</div>
+        <div className="absolute -bottom-3 -left-3 text-3xl">🥚</div>
+        <div className="absolute -bottom-3 -right-3 text-3xl animate-pulse">🐣</div>
+
+        {/* Content */}
+        <div className="space-y-3 text-center relative z-10">
+          <div className="text-2xl mb-2">🏡</div>
+          <h3 className="text-lg font-bold text-white">Chicken Farm</h3>
+          <p className="text-base text-white/90 leading-relaxed">
+            {resultMessage}
+          </p>
+          
+          {/* Loading indicator */}
+          <div className="flex justify-center items-center space-x-1 mt-4">
+            <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+            <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import Game from "@/components/game";
+import Game from "@/components/game/example";
 
 export default function Home() {
   return (

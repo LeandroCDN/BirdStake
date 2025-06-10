@@ -39,9 +39,9 @@ export default function Button({
   };
   //
   const sizes = {
-    sm: " text-sm ",
-    md: "h-14 px-6 py-1 text-3xl",
-    lg: "h-16 px-8 py-1 text-5xl",
+    sm: "h-8 px-2 py-1 text-xs",
+    md: "h-10 px-4 py-1 text-sm",
+    lg: "h-12 px-6 py-2 text-base",
   };
 
   return (
