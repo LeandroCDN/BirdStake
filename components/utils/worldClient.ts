@@ -1,29 +1,38 @@
 import { ethers } from "ethers";
-import { createPermitTransfer, createTransferDetails } from '@/components/utils/permitTransfer';
-import { MiniAppSendTransactionPayload, MiniKit, SendTransactionInput } from "@worldcoin/minikit-js";
+import {
+    createPermitTransfer,
+    createTransferDetails,
+} from "@/components/utils/permitTransfer";
+import {
+    MiniAppSendTransactionPayload,
+    MiniKit,
+    SendTransactionInput,
+} from "@worldcoin/minikit-js";
 import GameABI from "@/public/ABIS/Game.json";
 
 // Clase para manejar las transacciones del BirdStake
 class BirdStakeClient {
-
     // Función para depositar tokens usando permit2
     async deposit(
         stakeContractAddress: string,
         tokenAmount: number,
         stakedTokenAddress: string,
+        decimals: number = 18
     ): Promise<{
         commandPayload: SendTransactionInput | null;
         finalPayload: MiniAppSendTransactionPayload;
     }> {
         const { permitTransfer, permitTransferArgsForm } = createPermitTransfer(
             stakedTokenAddress,
-            tokenAmount.toString()
+            tokenAmount.toString(),
+            decimals
         );
 
         const { transferDetails, transferDetailsArgsForm } = createTransferDetails(
             stakedTokenAddress,
             tokenAmount.toString(),
-            stakeContractAddress
+            stakeContractAddress,
+            decimals
         );
 
         const response = await MiniKit.commandsAsync.sendTransaction({
@@ -47,12 +56,16 @@ class BirdStakeClient {
             ],
         });
 
-        console.log('BirdStakeClient.deposit response:', response);
+        console.log("BirdStakeClient.deposit response:", response);
         return response;
     }
 
     // Función para retirar tokens
-    async withdraw(stakeContractAddress: string, amount: number): Promise<{
+    async withdraw(
+        stakeContractAddress: string,
+        amount: number,
+        decimals: number = 18
+    ): Promise<{
         commandPayload: SendTransactionInput | null;
         finalPayload: MiniAppSendTransactionPayload;
     }> {
@@ -62,19 +75,17 @@ class BirdStakeClient {
                     address: stakeContractAddress,
                     abi: GameABI,
                     functionName: "withdraw",
-                    args: [ethers.parseEther(amount.toString())],
+                    args: [ethers.parseUnits(amount.toString(), decimals)],
                 },
             ],
         });
 
-        console.log('BirdStakeClient.withdraw response:', response);
+        console.log("BirdStakeClient.withdraw response:", response);
         return response;
     }
 
     // Función para retiro de emergencia
-    async emergencyWithdraw(
-        stakeContractAddress: string
-    ): Promise<{
+    async emergencyWithdraw(stakeContractAddress: string): Promise<{
         commandPayload: SendTransactionInput | null;
         finalPayload: MiniAppSendTransactionPayload;
     }> {
@@ -89,7 +100,7 @@ class BirdStakeClient {
             ],
         });
 
-        console.log('BirdStakeClient.emergencyWithdraw response:', response);
+        console.log("BirdStakeClient.emergencyWithdraw response:", response);
         return response;
     }
 }
@@ -101,7 +112,7 @@ export default birdStakeClient;
 
 /**
  * HOW TO USE BIRD STAKE CLIENT
- * 
+ *
     import birdStakeClient from "@/components/utils/worldClient";
 
     const stakeContractAddress = "0x123..."; // Dirección del contrato BirdStake
@@ -147,5 +158,5 @@ export default birdStakeClient;
     depositTokens();
     withdrawTokens();
     emergencyWithdraw();
- * 
+ *
  */

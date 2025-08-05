@@ -47,7 +47,6 @@ export default function StakingCard({
     stakedTokenAddress: string;
     rewardTokenAddress: string;
   } | null>(null);
-  const [tokenDecimals, setTokenDecimals] = useState<number>(18);
 
   // Datos calculados dinámicamente
   const [endTime, setEndTime] = useState<string>("Loading...");
@@ -94,14 +93,11 @@ export default function StakingCard({
 
       // First get token addresses if we don't have them
       let currentTokenAddresses = tokenAddresses;
-      let currentDecimals = tokenDecimals;
 
       if (!currentTokenAddresses) {
         const tokenInfo = await fetchTokenInfo();
         if (tokenInfo) {
           currentTokenAddresses = tokenInfo.addresses;
-          // Los decimales ahora se obtienen del pool, no se hardcodean
-          currentDecimals = pool.stakedTokenDecimals;
         } else {
           // Skip if we can't get token info
           setIsLoading(false);
@@ -112,7 +108,8 @@ export default function StakingCard({
       const [userInfo, rewards, balance, rewardCalc] = await Promise.all([
         web3Client.getUserInfo(
           MiniKit.user.walletAddress,
-          pool.contractAddress
+          pool.contractAddress,
+          pool.stakedTokenDecimals
         ),
         web3Client.getPendingRewards(
           MiniKit.user.walletAddress,
@@ -127,7 +124,8 @@ export default function StakingCard({
         web3Client.getStakingRewardData(
           pool.contractAddress,
           MiniKit.user.walletAddress,
-          pool.stakedTokenDecimals // Pasa los decimales para los cálculos
+          pool.stakedTokenDecimals, // Pasa los decimales para los cálculos
+          pool.rewardTokenDecimals
         ),
       ]);
 
@@ -154,9 +152,7 @@ export default function StakingCard({
           );
         } else {
           // Usuario no tiene balance: usar template de 100 unidades (convertir a Ether)
-          const templateStakeAmount = parseFloat(
-            ethers.formatEther(ethers.parseEther("100"))
-          );
+          const templateStakeAmount = 100;
           const templateRewardPerSecond =
             (templateStakeAmount / parseFloat(rewardCalc.totalStakedSupply)) *
             parseFloat(rewardCalc.rewardPerSecond);
@@ -184,13 +180,7 @@ export default function StakingCard({
     } finally {
       setIsLoading(false);
     }
-  }, [
-    pool.contractAddress,
-    pool.id,
-    tokenAddresses,
-    tokenDecimals,
-    fetchTokenInfo,
-  ]);
+  }, [pool, tokenAddresses, fetchTokenInfo]);
 
   useEffect(() => {
     fetchPoolData();
@@ -199,7 +189,11 @@ export default function StakingCard({
     const rewardsInterval = setInterval(() => {
       if (MiniKit.user?.walletAddress) {
         web3Client
-          .getPendingRewards(MiniKit.user.walletAddress, pool.contractAddress)
+          .getPendingRewards(
+            MiniKit.user.walletAddress,
+            pool.contractAddress,
+            pool.rewardTokenDecimals
+          )
           .then(setPendingRewards)
           .catch(console.error);
       }
@@ -221,7 +215,12 @@ export default function StakingCard({
       clearInterval(rewardsInterval);
       clearInterval(timeInterval);
     };
-  }, [pool.contractAddress, tokenAddresses, fetchPoolData]);
+  }, [
+    pool.contractAddress,
+    pool.rewardTokenDecimals,
+    tokenAddresses,
+    fetchPoolData,
+  ]);
 
   useEffect(() => {
     if (
@@ -281,7 +280,8 @@ export default function StakingCard({
       const response = await birdStakeClient.deposit(
         pool.contractAddress,
         Number(stakeAmount),
-        tokenAddresses.stakedTokenAddress
+        tokenAddresses.stakedTokenAddress,
+        pool.stakedTokenDecimals
       );
       console.log(`Stake response for ${pool.id}:`, response);
       alert("Stake transaction sent successfully!");
@@ -302,7 +302,11 @@ export default function StakingCard({
     setIsProcessing(true);
     try {
       // withdraw(0) para solo reclamar recompensas
-      const response = await birdStakeClient.withdraw(pool.contractAddress, 0);
+      const response = await birdStakeClient.withdraw(
+        pool.contractAddress,
+        0,
+        pool.stakedTokenDecimals
+      );
       console.log(`Claim response for ${pool.id}:`, response);
       alert("Claim transaction sent successfully!");
       setTimeout(() => {
@@ -323,7 +327,8 @@ export default function StakingCard({
       // withdraw(stakedBalance) para retirar todo
       const response = await birdStakeClient.withdraw(
         pool.contractAddress,
-        Number(stakedBalance)
+        Number(stakedBalance),
+        pool.stakedTokenDecimals
       );
       console.log(`Withdraw response for ${pool.id}:`, response);
       alert("Withdraw transaction sent successfully!");

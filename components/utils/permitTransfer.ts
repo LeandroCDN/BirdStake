@@ -15,13 +15,10 @@ interface TransferDetails {
   requestedAmount: string;
 }
 
-const wldAddress = "0x2cFc85d8E48F8EAB294be644d9E25C3030863003";
-const usdcAddress = "0x79A02482A880bCE3F13e09Da970dC34db4CD24d1";
-
-
 export const createPermitTransfer = (
   token: string,
   tokenAmount: string,
+  decimals: number = 18
 ): {
   permitTransfer: PermitTransfer;
   permitTransferArgsForm: [string[], string, string];
@@ -30,10 +27,7 @@ export const createPermitTransfer = (
   const permitTransfer: PermitTransfer = {
     permitted: {
       token: token.toString(),
-      amount:
-        token === usdcAddress
-          ? (Number(tokenAmount) * 10 ** 6).toString()
-          : ethers.parseEther(tokenAmount.toString()).toString(),
+      amount: ethers.parseUnits(tokenAmount, decimals).toString(),
     },
     nonce: Date.now().toString(),
     deadline,
@@ -51,18 +45,15 @@ export const createPermitTransfer = (
 export const createTransferDetails = (
   token: string,
   tokenAmount: string,
-  gameAddress: string
+  gameAddress: string,
+  decimals: number = 18
 ): {
   transferDetails: TransferDetails;
   transferDetailsArgsForm: [string, string];
 } => {
-
   const transferDetails: TransferDetails = {
     to: gameAddress,
-    requestedAmount:
-      token === usdcAddress
-        ? (Number(tokenAmount) * 10 ** 6).toString()
-        : ethers.parseEther(tokenAmount.toString()).toString(),
+    requestedAmount: ethers.parseUnits(tokenAmount, decimals).toString(),
   };
 
   const transferDetailsArgsForm: [string, string] = [
@@ -75,7 +66,7 @@ export const createTransferDetails = (
 
 /**
  * HOW TO USE
- * 
+ *
 ```
 import { createPermitTransfer, createTransferDetails } from '@/lib/permitTransfer';
 
@@ -91,5 +82,5 @@ const { transferDetails, transferDetailsArgsForm } = createTransferDetails(token
 console.log(permitTransfer, permitTransferArgsForm);
 console.log(transferDetails, transferDetailsArgsForm);
 ```
- * 
+ *
  */
