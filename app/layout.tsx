@@ -25,11 +25,11 @@ export default function RootLayout({
   );
   return (
     <html lang="en">
-      <ErudaProvider>
-        <MiniKitProvider>
-          <body className={balooThambi.className}>{children}</body>
-        </MiniKitProvider>
-      </ErudaProvider>
+      {/* <ErudaProvider> */}
+      <MiniKitProvider>
+        <body className={balooThambi.className}>{children}</body>
+      </MiniKitProvider>
+      {/* </ErudaProvider> */}
     </html>
   );
 }
