@@ -131,7 +131,7 @@ export default function Game() {
         <div className="relative ">
           {/* Background elements */}
 
-          <div className="relative flex items-center gap-6">
+          <div className="relative flex items-center flex-col ">
             {/* Bird Image */}
             <div className="flex-shrink-0">
               <Image
@@ -145,12 +145,12 @@ export default function Game() {
 
             {/* STAKE Text and Description */}
             <div className="flex-1">
-              <h1
-                className="text-6xl font-black mb-2 tracking-wider drop-shadow-lg"
-                style={{ color: "#049de3" }}
-              >
-                STAKE!
-              </h1>
+              <p className="text-xl text-center mb-2 tracking-wider drop-shadow-lg">
+                <span style={{ color: "#049de3" }}>Stake! </span>
+                <span style={{ color: "black" }}>
+                  your tokens and earn <br /> daily rewards passively
+                </span>
+              </p>
             </div>
           </div>
         </div>

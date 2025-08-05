@@ -64,7 +64,7 @@ export function SignIn() {
           <div className="flex flex-col items-center text-center max-w-xs w-full">
             {/* Bird Image */}
             <Image
-              src="/ICONS/BirdIMG.webp"
+              src="/ICONS/BirdHero.webp"
               alt="Welcome Bird"
               width={160}
               height={160}
