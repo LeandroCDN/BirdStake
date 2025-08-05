@@ -4,7 +4,9 @@ export interface StakingPool {
     name: string;
     contractAddress: string;
     stakedTokenSymbol: string; // Solo para display, los addresses se obtienen del contrato
+    stakedTokenDecimals: number;
     rewardTokenSymbol: string; // Solo para display, los addresses se obtienen del contrato
+    rewardTokenDecimals: number;
     icon: string; // Emoji o icono
     description: string;
     totalRewardsPerDay: string;
@@ -25,7 +27,9 @@ export const STAKING_POOLS: StakingPool[] = [
         name: "WLD → GEMS",
         contractAddress: "0x9c11F5cd466B6788611bffde6Da5a520e00Bfc9A",
         stakedTokenSymbol: "WLD",
+        stakedTokenDecimals: 18,
         rewardTokenSymbol: "GEMS", // 170_000 Gems -17 days (10000 Gems per day) (0.11574074074074074 gems/second)
+        rewardTokenDecimals: 18,
         icon: "/ICONS/WLDgems.webp",
         description: "Stake WLD tokens to earn GEMS rewards",
         totalRewardsPerDay: "10000"
@@ -36,7 +40,9 @@ export const STAKING_POOLS: StakingPool[] = [
         name: "USDC → GEMS",
         contractAddress: "0x42584A11c5b6AD62FA7f6E001625Df48d9383A50",
         stakedTokenSymbol: "USDC",
+        stakedTokenDecimals: 6,
         rewardTokenSymbol: "GEMS",  // 170_000 Gems -17 days (10000 Gems per day) (0.11574074074074074 gems/second)
+        rewardTokenDecimals: 18,
         icon: "/ICONS/USDCgems.webp",
         description: "Stake USDC tokens to earn GEMS rewards",
         totalRewardsPerDay: "10000"
@@ -47,20 +53,24 @@ export const STAKING_POOLS: StakingPool[] = [
         name: "GEMS → WLD",
         contractAddress: "0x511530875D287Bf512ef915E5a0995F45F0EB1B4",
         stakedTokenSymbol: "GEMS",
+        stakedTokenDecimals: 18,
         rewardTokenSymbol: "WLD", // 595 WLD - 17 days (35 WLD per day) 
+        rewardTokenDecimals: 18,
         icon: "/ICONS/GEMSwld.webp",
         description: "Stake GEMS tokens to earn WLD rewards",
         totalRewardsPerDay: "35"
     },
 
     {
-        id: "gems-wld",
+        id: "gems-usdc",
         name: "GEMS → USDC",
         contractAddress: "0x2b0858EA6746C29380db58Ac1c8f12c58E124FC5",
         stakedTokenSymbol: "GEMS",
+        stakedTokenDecimals: 18,
         rewardTokenSymbol: "USDC", // 595 usdc - 17 days (35 usdc per day)
+        rewardTokenDecimals: 6,
         icon: "/ICONS/GEMSusdc.webp",
-        description: "Stake GEMS tokens to earn WLD rewards",
+        description: "Stake GEMS tokens to earn USDC rewards",
         totalRewardsPerDay: "35"
     },
 ];

@@ -100,7 +100,8 @@ export default function StakingCard({
         const tokenInfo = await fetchTokenInfo();
         if (tokenInfo) {
           currentTokenAddresses = tokenInfo.addresses;
-          currentDecimals = 18;
+          // Los decimales ahora se obtienen del pool, no se hardcodean
+          currentDecimals = pool.stakedTokenDecimals;
         } else {
           // Skip if we can't get token info
           setIsLoading(false);
@@ -115,16 +116,18 @@ export default function StakingCard({
         ),
         web3Client.getPendingRewards(
           MiniKit.user.walletAddress,
-          pool.contractAddress
+          pool.contractAddress,
+          pool.rewardTokenDecimals // Pasa los decimales del token de recompensa
         ),
         web3Client.fetchERC20Balance(
           MiniKit.user.walletAddress,
           currentTokenAddresses.stakedTokenAddress,
-          currentDecimals
+          pool.stakedTokenDecimals // Pasa los decimales del token de stake
         ),
         web3Client.getStakingRewardData(
           pool.contractAddress,
-          MiniKit.user.walletAddress
+          MiniKit.user.walletAddress,
+          pool.stakedTokenDecimals // Pasa los decimales para los cálculos
         ),
       ]);
 
@@ -667,10 +670,7 @@ export default function StakingCard({
                 </p>
                 {rewardData && parseFloat(stakedBalance) > 0 && (
                   <p>
-                    • <strong>Your Earnings:</strong>{" "}
-                    {parseFloat(rewardData.templateRewardPerHour).toFixed(2)}{" "}
-                    {pool.rewardTokenSymbol}
-                    /hour
+                    • <strong>Fee:</strong> 2%
                   </p>
                 )}
               </div>
