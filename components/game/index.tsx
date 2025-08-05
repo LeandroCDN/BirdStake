@@ -1,117 +1,186 @@
 "use client";
-import web3Client from "@/components/utils/web3Client";
-import chickenFarmClient from "@/components/utils/worldClient";
 import { MiniKit } from "@worldcoin/minikit-js";
 import { useEffect, useState } from "react";
-import Button from "../Button/index";
 import Image from "next/image";
+import StakingCard from "@/components/StakingCard";
+import {
+  getActiveStakingPools,
+  StakingPool,
+} from "@/components/utils/stakingContracts";
+import web3Client from "@/components/utils/web3Client";
 
-import { useWaitForTransactionReceipt } from "@worldcoin/minikit-react";
-import { createPublicClient, http, defineChain } from "viem";
-
-// WLD Token address on WorldChain
+// Token addresses principales para mostrar balances
 const WLD_TOKEN_ADDRESS = "0x2cFc85d8E48F8EAB294be644d9E25C3030863003";
+const GEMS_TOKEN_ADDRESS = "0xAD3eE0342CB753C2B39579F9dB292A9Ae94b153E";
+const USDC_TOKEN_ADDRESS = "0x79A02482A880bCE3F13e09Da970dC34db4CD24d1";
 
 export default function Game() {
-  const [wldBalance, setWldBalance] = useState<string>("0.00");
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [walletAddress, setWalletAddress] = useState<string>("");
+  const [wldBalance, setWldBalance] = useState<string>("0.00");
+  const [gemsBalance, setGemsBalance] = useState<string>("0.00");
+  const [usdcBalance, setUsdcBalance] = useState<string>("0.00");
+  const [isLoadingBalances, setIsLoadingBalances] = useState<boolean>(true);
+  const [stakingPools, setStakingPools] = useState<StakingPool[]>([]);
 
-  // Function to fetch WLD balance
-  const fetchWLDBalance = async () => {
+  // Fetch main token balances
+  const fetchMainBalances = async () => {
     try {
       if (!MiniKit.user?.walletAddress) {
         console.log("No wallet address available");
         return;
       }
 
-      setIsLoading(true);
-      const balance = await web3Client.fetchERC20Balance(
-        MiniKit.user.walletAddress,
-        WLD_TOKEN_ADDRESS,
-        18 // WLD has 18 decimals
-      );
+      setIsLoadingBalances(true);
+      const [wldBal, gemsBal, usdcBal] = await Promise.all([
+        web3Client.fetchERC20Balance(
+          MiniKit.user.walletAddress,
+          WLD_TOKEN_ADDRESS,
+          18
+        ),
+        web3Client.fetchERC20Balance(
+          MiniKit.user.walletAddress,
+          GEMS_TOKEN_ADDRESS,
+          18
+        ),
+        web3Client.fetchERC20Balance(
+          MiniKit.user.walletAddress,
+          USDC_TOKEN_ADDRESS,
+          6
+        ),
+      ]);
 
-      setWldBalance(balance);
+      setWldBalance(wldBal);
+      setGemsBalance(gemsBal);
+      setUsdcBalance(usdcBal);
       setWalletAddress(MiniKit.user.walletAddress);
     } catch (error) {
-      console.error("Error fetching WLD balance:", error);
-      setWldBalance("Error");
+      console.error("Error fetching main balances:", error);
     } finally {
-      setIsLoading(false);
+      setIsLoadingBalances(false);
     }
   };
 
-  // Fetch balance on component mount
+  // Load available staking pools
   useEffect(() => {
-    fetchWLDBalance();
+    const pools = getActiveStakingPools();
+    setStakingPools(pools);
+    fetchMainBalances();
   }, []);
 
-  // Function to refresh balance
-  const handleRefreshBalance = () => {
-    fetchWLDBalance();
+  const handleRefreshBalances = () => {
+    fetchMainBalances();
   };
 
+  const handleStakeSuccess = () => {
+    // Refresh main balances when a stake operation is successful
+    setTimeout(fetchMainBalances, 3000);
+  };
+
+  // Mostrar todos los pools
+  const filteredPools = stakingPools;
+
   return (
-    <div className="flex flex-col w-screen h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      {/* Header */}
-      <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4 text-center">
-          🎮 Game Dashboard
-        </h1>
-
-        {/* Wallet Info */}
-        <div className="bg-gray-50 rounded-lg p-4 mb-4">
-          <h2 className="text-lg font-semibold text-gray-700 mb-2">
-            💼 Wallet Information
-          </h2>
-          <p className="text-sm text-gray-600 break-all">
-            <span className="font-medium">Address:</span>{" "}
-            {walletAddress || "Not connected"}
-          </p>
-        </div>
-
-        {/* WLD Balance Card */}
-        <div className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold mb-2">🪙 WLD Balance</h2>
-              <div className="text-3xl font-bold">
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin w-6 h-6 border-2 border-white border-t-transparent rounded-full"></div>
-                    Loading...
-                  </div>
-                ) : (
-                  `${wldBalance} WLD`
-                )}
+    <div
+      className="flex flex-col w-screen h-screen"
+      style={{ background: "linear-gradient(to bottom, #dbe9ff, #ffffff)" }}
+    >
+      {/* Header - Fijo */}
+      <div className="">
+        {/* Balance Section */}
+        <div className="flex justify-center">
+          <div className="bg-white text-black rounded-3xl px-6 py-3  w-full">
+            <div className="flex items-center justify-center gap-6">
+              <div className="flex items-center gap-2">
+                <Image
+                  src="/ICONS/WLD.webp"
+                  alt="WLD Token"
+                  width={24}
+                  height={24}
+                  className="w-6 h-6"
+                />
+                <span className="font-bold">
+                  {isLoadingBalances ? "..." : wldBalance}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">💎</span>
+                <span className="font-bold">
+                  {isLoadingBalances ? "..." : gemsBalance}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Image
+                  src="/ICONS/USDC.webp"
+                  alt="USDC Token"
+                  width={24}
+                  height={24}
+                  className="w-6 h-6"
+                />
+                <span className="font-bold">
+                  {isLoadingBalances ? "..." : usdcBalance}
+                </span>
               </div>
             </div>
-            <button
-              onClick={handleRefreshBalance}
-              disabled={isLoading}
-              className="bg-white/20 hover:bg-white/30 disabled:bg-white/10 rounded-lg p-3 transition-all duration-200 hover:scale-105"
-            >
-              <div className={`text-2xl ${isLoading ? "animate-spin" : ""}`}>
-                🔄
-              </div>
-            </button>
           </div>
         </div>
       </div>
 
-      {/* Game Content */}
-      <div className="bg-white rounded-2xl shadow-lg p-6 flex-1">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          🎯 Game Content
-        </h2>
-        <div className="text-center text-gray-600">
-          <p className="text-lg mb-4">Welcome to the game!</p>
-          <p>Your WLD balance is displayed above.</p>
-          <p className="text-sm mt-4 text-gray-500">
-            More game features coming soon...
-          </p>
+      {/* Contenido con scroll */}
+      <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-6">
+        {/* Hero Section */}
+        <div className="relative ">
+          {/* Background elements */}
+
+          <div className="relative flex items-center gap-6">
+            {/* Bird Image */}
+            <div className="flex-shrink-0">
+              <Image
+                src="/ICONS/BirdHero.webp"
+                alt="Staking Bird"
+                width={112}
+                height={112}
+                className="w-28 h-28 object-contain"
+              />
+            </div>
+
+            {/* STAKE Text and Description */}
+            <div className="flex-1">
+              <h1
+                className="text-6xl font-black mb-2 tracking-wider drop-shadow-lg"
+                style={{ color: "#049de3" }}
+              >
+                STAKE!
+              </h1>
+            </div>
+          </div>
         </div>
+
+        {/* Staking Pools Grid */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {filteredPools.map((pool) => (
+            <StakingCard
+              key={pool.id}
+              pool={pool}
+              onStakeSuccess={handleStakeSuccess}
+            />
+          ))}
+        </div>
+
+        {/* Empty State */}
+        {filteredPools.length === 0 && (
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-xl p-12 text-center border border-white/20">
+            <div className="text-6xl mb-4">📭</div>
+            <h3
+              className="text-2xl font-bold mb-2"
+              style={{ color: "#091747" }}
+            >
+              No Pools Available
+            </h3>
+            <p style={{ color: "#091747", opacity: 0.7 }}>
+              No staking pools are currently available.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

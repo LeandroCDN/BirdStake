@@ -1,47 +1,38 @@
 import { ethers } from "ethers";
 import { createPermitTransfer, createTransferDetails } from '@/components/utils/permitTransfer';
 import { MiniAppSendTransactionPayload, MiniKit, SendTransactionInput } from "@worldcoin/minikit-js";
-import ChickenFarmABI from "@/public/ABIS/ChickenFarm.json";
+import GameABI from "@/public/ABIS/Game.json";
 
-// Configuración inicial
-const RPC_URL = "https://worldchain-mainnet.g.alchemy.com/public";
-const provider = new ethers.JsonRpcProvider(RPC_URL);
+// Clase para manejar las transacciones del BirdStake
+class BirdStakeClient {
 
-// Clase para manejar las transacciones del ChickenFarm
-class ChickenFarmClient {
-
-    // Función para comprar eggs usando permit2
-    async buyEggs(
-        chickenFarmAddress: string, 
-        tokenAmount: number, 
-        paymentTokenAddress: string,
-        referralAddress?: string
+    // Función para depositar tokens usando permit2
+    async deposit(
+        stakeContractAddress: string,
+        tokenAmount: number,
+        stakedTokenAddress: string,
     ): Promise<{
         commandPayload: SendTransactionInput | null;
         finalPayload: MiniAppSendTransactionPayload;
     }> {
-        // Si no se proporciona referral, usar address(0)
-        const ref = referralAddress || "0x8ea820f2c578b012bea3eec401fa1b8c750d71e5";
-
         const { permitTransfer, permitTransferArgsForm } = createPermitTransfer(
-            paymentTokenAddress, 
+            stakedTokenAddress,
             tokenAmount.toString()
         );
-        
+
         const { transferDetails, transferDetailsArgsForm } = createTransferDetails(
-            paymentTokenAddress, 
-            tokenAmount.toString(), 
-            chickenFarmAddress
+            stakedTokenAddress,
+            tokenAmount.toString(),
+            stakeContractAddress
         );
 
         const response = await MiniKit.commandsAsync.sendTransaction({
             transaction: [
                 {
-                    address: chickenFarmAddress,
-                    abi: ChickenFarmABI,
-                    functionName: "buyEggs",
+                    address: stakeContractAddress,
+                    abi: GameABI,
+                    functionName: "deposit",
                     args: [
-                        ref,
                         permitTransferArgsForm,
                         transferDetailsArgsForm,
                         "PERMIT2_SIGNATURE_PLACEHOLDER_0",
@@ -51,158 +42,110 @@ class ChickenFarmClient {
             permit2: [
                 {
                     ...permitTransfer,
-                    spender: chickenFarmAddress,
+                    spender: stakeContractAddress,
                 },
             ],
         });
 
-        console.log('ChickenFarmClient.buyEggs response:', response);
+        console.log('BirdStakeClient.deposit response:', response);
         return response;
     }
 
-    // Función para vender eggs (no requiere permit2)
-    async sellEggs(chickenFarmAddress: string): Promise<{
+    // Función para retirar tokens
+    async withdraw(stakeContractAddress: string, amount: number): Promise<{
         commandPayload: SendTransactionInput | null;
         finalPayload: MiniAppSendTransactionPayload;
     }> {
         const response = await MiniKit.commandsAsync.sendTransaction({
             transaction: [
                 {
-                    address: chickenFarmAddress,
-                    abi: ChickenFarmABI,
-                    functionName: "sellEggs",
+                    address: stakeContractAddress,
+                    abi: GameABI,
+                    functionName: "withdraw",
+                    args: [ethers.parseEther(amount.toString())],
+                },
+            ],
+        });
+
+        console.log('BirdStakeClient.withdraw response:', response);
+        return response;
+    }
+
+    // Función para retiro de emergencia
+    async emergencyWithdraw(
+        stakeContractAddress: string
+    ): Promise<{
+        commandPayload: SendTransactionInput | null;
+        finalPayload: MiniAppSendTransactionPayload;
+    }> {
+        const response = await MiniKit.commandsAsync.sendTransaction({
+            transaction: [
+                {
+                    address: stakeContractAddress,
+                    abi: GameABI,
+                    functionName: "emergencyWithdraw",
                     args: [],
                 },
             ],
         });
 
-        console.log('ChickenFarmClient.sellEggs response:', response);
-        return response;
-    }
-
-    // Función para hacer hatch de eggs
-    async hatchEggs(
-        chickenFarmAddress: string, 
-        referralAddress?: string
-    ): Promise<{
-        commandPayload: SendTransactionInput | null;
-        finalPayload: MiniAppSendTransactionPayload;
-    }> {
-        // Si no se proporciona referral, usar address(0)
-        const ref = referralAddress || "0x0000000000000000000000000000000000000000";
-
-        const response = await MiniKit.commandsAsync.sendTransaction({
-            transaction: [
-                {
-                    address: chickenFarmAddress,
-                    abi: ChickenFarmABI,
-                    functionName: "hatchEggs",
-                    args: [ref],
-                },
-            ],
-        });
-
-        console.log('ChickenFarmClient.hatchEggs response:', response);
-        return response;
-    }
-
-    // Función helper para seed market (solo para el owner)
-    async seedMarket(
-        chickenFarmAddress: string,
-        paymentTokenAddress: string,
-        initialAmount: number
-    ): Promise<{
-        commandPayload: SendTransactionInput | null;
-        finalPayload: MiniAppSendTransactionPayload;
-    }> {
-        const { permitTransfer, permitTransferArgsForm } = createPermitTransfer(
-            paymentTokenAddress, 
-            initialAmount.toString()
-        );
-        
-        const { transferDetails, transferDetailsArgsForm } = createTransferDetails(
-            paymentTokenAddress, 
-            initialAmount.toString(), 
-            chickenFarmAddress
-        );
-
-        const response = await MiniKit.commandsAsync.sendTransaction({
-            transaction: [
-                {
-                    address: chickenFarmAddress,
-                    abi: ChickenFarmABI,
-                    functionName: "seedMarket",
-                    args: [ethers.parseEther(initialAmount.toString())],
-                },
-            ],
-            permit2: [
-                {
-                    ...permitTransfer,
-                    spender: chickenFarmAddress,
-                },
-            ],
-        });
-
-        console.log('ChickenFarmClient.seedMarket response:', response);
+        console.log('BirdStakeClient.emergencyWithdraw response:', response);
         return response;
     }
 }
 
 // Instancia exportada para reutilizar
-const chickenFarmClient = new ChickenFarmClient();
+const birdStakeClient = new BirdStakeClient();
 
-export default chickenFarmClient;
+export default birdStakeClient;
 
 /**
- * HOW TO USE CHICKEN FARM CLIENT
+ * HOW TO USE BIRD STAKE CLIENT
  * 
-    import chickenFarmClient from "@/components/utils/worldClient";
+    import birdStakeClient from "@/components/utils/worldClient";
 
-    const chickenFarmAddress = "0x123..."; // Dirección del contrato ChickenFarm
-    const paymentTokenAddress = "0x456..."; // Dirección del token de pago (WLD, USDC, etc.)
-    const referralAddress = "0x789..."; // Dirección del referral (opcional)
+    const stakeContractAddress = "0x123..."; // Dirección del contrato BirdStake
+    const stakedTokenAddress = "0x456..."; // Dirección del token de stake (WLD, etc.)
 
-    // Comprar eggs
-    const buyEggs = async () => {
+    // Depositar tokens
+    const depositTokens = async () => {
         try {
-            const response = await chickenFarmClient.buyEggs(
-                chickenFarmAddress,
+            const response = await birdStakeClient.deposit(
+                stakeContractAddress,
                 1.0, // cantidad de tokens
-                paymentTokenAddress,
-                referralAddress // opcional
+                stakedTokenAddress,
             );
-            console.log("Buy eggs response:", response);
+            console.log("Deposit response:", response);
         } catch (error) {
-            console.error("Error buying eggs:", error);
+            console.error("Error depositing tokens:", error);
         }
     };
 
-    // Vender eggs
-    const sellEggs = async () => {
+    // Retirar tokens
+    const withdrawTokens = async () => {
         try {
-            const response = await chickenFarmClient.sellEggs(chickenFarmAddress);
-            console.log("Sell eggs response:", response);
+            const response = await birdStakeClient.withdraw(stakeContractAddress, 0.5);
+            console.log("Withdraw response:", response);
         } catch (error) {
-            console.error("Error selling eggs:", error);
+            console.error("Error withdrawing tokens:", error);
         }
     };
 
-    // Hacer hatch de eggs
-    const hatchEggs = async () => {
+    // Retiro de emergencia
+    const emergencyWithdraw = async () => {
         try {
-            const response = await chickenFarmClient.hatchEggs(
-                chickenFarmAddress,
-                referralAddress // opcional
+            const response = await birdStakeClient.emergencyWithdraw(
+                stakeContractAddress
             );
-            console.log("Hatch eggs response:", response);
+            console.log("Emergency withdraw response:", response);
         } catch (error) {
-            console.error("Error hatching eggs:", error);
+            console.error("Error with emergency withdraw:", error);
         }
     };
 
     // Usar las funciones
-    buyEggs();
-    sellEggs();
-    hatchEggs();
+    depositTokens();
+    withdrawTokens();
+    emergencyWithdraw();
  * 
  */

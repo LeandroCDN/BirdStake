@@ -1,7 +1,6 @@
 import { ethers } from "ethers";
 import ERC20ABI from "@/public/ABIS/ERC20.json";
-import ChickenFarmABI from "@/public/ABIS/ChickenFarm.json";
-import POINTSABI from "@/public/ABIS/pointsManager.json";
+import GameABI from "@/public/ABIS/Game.json";
 
 // Configuración inicial
 const RPC_URL = "https://worldchain-mainnet.g.alchemy.com/public";
@@ -36,32 +35,155 @@ class Web3Client {
     return formattedBalance.toString();
   }
 
-  // Función para obtener `pendingIdsPerPlayer`
-  async fetchPendingId(
-    walletAddress: string,
-    crashAddress: string,
-    abi: any
-  ): Promise<any> {
-    const contract = await this.getContract(crashAddress, abi);
-    const pendingId = await contract.pendingIdsPerPlayer(walletAddress);
-    return pendingId;
+  // ========== BIRD STAKE SPECIFIC METHODS ==========
+
+  // Obtener la información del usuario
+  async getUserInfo(walletAddress: string, stakeContractAddress: string): Promise<{ amount: string, rewardDebt: string }> {
+    const contract = await this.getContract(stakeContractAddress, GameABI);
+    const userInfo = await contract.userInfo(walletAddress);
+    return {
+      amount: ethers.formatEther(userInfo.amount),
+      rewardDebt: ethers.formatEther(userInfo.rewardDebt)
+    };
   }
 
-  async getTotalPoints(walletAddress: string, contract: string): Promise<any> {
-    const pointsContract = await this.getContract(contract, POINTSABI);
-    const userPoints = await pointsContract.getPoints(walletAddress);
-    return userPoints;
+  // Obtener la recompensa pendiente
+  async getPendingRewards(walletAddress: string, stakeContractAddress: string): Promise<string> {
+    const contract = await this.getContract(stakeContractAddress, GameABI);
+    const pendingRewards = await contract.pendingReward(walletAddress);
+    return ethers.formatEther(pendingRewards);
   }
 
-  // ========== CHICKEN FARM SPECIFIC METHODS ==========
+  // Obtener información del pool
+  async getPoolInfo(stakeContractAddress: string): Promise<any> {
+    const contract = await this.getContract(stakeContractAddress, GameABI);
+    const [
+      stakedToken,
+      rewardToken,
+      rewardPerSecond,
+      startTimestamp,
+      endTimestamp,
+      poolLimitPerUser,
+      houseEdge,
+      houseWallet,
+      totalFeesCollected
+    ] = await Promise.all([
+      contract.stakedToken(),
+      contract.rewardToken(),
+      contract.rewardPerSecond(),
+      contract.startTimestamp(),
+      contract.endTimestamp(),
+      contract.poolLimitPerUser(),
+      contract.houseEdge(),
+      contract.houseWallet(),
+      contract.totalFeesCollected()
+    ]);
 
-  // Obtener la cantidad de miners del usuario
-  async getMyMiners(walletAddress: string, chickenFarmAddress: string): Promise<string> {
-    const contract = await this.getContract(chickenFarmAddress, ChickenFarmABI);
-    const miners = await contract.hatcheryMiners(walletAddress);
-    return miners.toString();
+    return {
+      stakedToken,
+      rewardToken,
+      rewardPerSecond: ethers.formatEther(rewardPerSecond),
+      startTimestamp: startTimestamp.toString(),
+      endTimestamp: endTimestamp.toString(),
+      poolLimitPerUser: ethers.formatEther(poolLimitPerUser),
+      houseEdge: houseEdge.toString(),
+      houseWallet,
+      totalFeesCollected: ethers.formatEther(totalFeesCollected)
+    };
   }
 
+  // Obtener las direcciones de tokens del contrato de staking
+  async getStakingTokenAddresses(stakeContractAddress: string): Promise<{
+    stakedTokenAddress: string;
+    rewardTokenAddress: string;
+  }> {
+    const contract = await this.getContract(stakeContractAddress, GameABI);
+    const [stakedToken, rewardToken] = await Promise.all([
+      contract.stakedToken(),
+      contract.rewardToken(),
+    ]);
+
+    return {
+      stakedTokenAddress: stakedToken,
+      rewardTokenAddress: rewardToken,
+    };
+  }
+
+  // Obtener decimales de un token ERC20
+  async getTokenDecimals(tokenAddress: string): Promise<number> {
+    const contract = await this.getContract(tokenAddress, ERC20ABI);
+    const decimals = await contract.decimals();
+    return Number(decimals);
+  }
+
+  // Obtener solo el endTimestamp del contrato de staking
+  async getStakingEndTime(stakeContractAddress: string): Promise<number> {
+    const contract = await this.getContract(stakeContractAddress, GameABI);
+    const endTimestamp = await contract.endTimestamp();
+    return Number(endTimestamp);
+  }
+
+  // Obtener solo el startTimestamp del contrato de staking
+  async getStakingStartTime(stakeContractAddress: string): Promise<number> {
+    const contract = await this.getContract(stakeContractAddress, GameABI);
+    const startTimestamp = await contract.startTimestamp();
+    return Number(startTimestamp);
+  }
+
+  // Obtener datos para calcular APY y rewards del usuario
+  async getStakingRewardData(stakeContractAddress: string, userAddress: string): Promise<{
+    rewardPerSecond: string;
+    userStakedAmount: string;
+    totalStakedSupply: string;
+    userRewardPerMinute: string;
+    estimatedAPY: string;
+  }> {
+    const contract = await this.getContract(stakeContractAddress, GameABI);
+    const stakedTokenContract = await this.getContract(await contract.stakedToken(), ERC20ABI);
+
+    const [
+      rewardPerSecond,
+      userInfo,
+      totalStakedSupply
+    ] = await Promise.all([
+      contract.rewardPerSecond(),
+      contract.userInfo(userAddress),
+      stakedTokenContract.balanceOf(stakeContractAddress) // Total tokens staked in contract
+    ]);
+
+    const userStakedAmount = userInfo.amount;
+
+    // Calcular reward per minute del usuario
+    let userRewardPerMinute: string = "0";
+    let estimatedAPY: string = "0";
+
+    if (totalStakedSupply > 0 && userStakedAmount > 0) {
+      // Reward por segundo del usuario
+      const userRewardPerSecond: number = (
+        Number(ethers.formatEther(userStakedAmount)) /
+        Number(ethers.formatEther(totalStakedSupply))
+      ) * Number(ethers.formatEther(rewardPerSecond));
+
+      // Reward por minuto
+      userRewardPerMinute = (userRewardPerSecond * 60).toFixed(8);
+
+      // APY estimado (recompensas anuales / stake inicial * 100)
+      const userRewardPerYear: number = userRewardPerSecond * 31536000; // 365 * 24 * 60 * 60
+      const userStakedAmountFormatted: number = Number(ethers.formatEther(userStakedAmount));
+
+      if (userStakedAmountFormatted > 0) {
+        estimatedAPY = ((userRewardPerYear / userStakedAmountFormatted) * 100).toFixed(2);
+      }
+    }
+
+    return {
+      rewardPerSecond: ethers.formatEther(rewardPerSecond),
+      userStakedAmount: ethers.formatEther(userStakedAmount),
+      totalStakedSupply: ethers.formatEther(totalStakedSupply),
+      userRewardPerMinute,
+      estimatedAPY
+    };
+  }
 }
 
 // Instancia exportada para reutilizar
@@ -72,62 +194,23 @@ export default web3Client;
 /**
  * HOW TO USE
  * 
-    import web3Client from "@/lib/web3Client";
-    import ABIcrash from "@/path/to/ABIcrash";
-    import WLD from "@/path/to/WLD";
-
-    const walletAddress = "0x123..."; // Dirección de la wallet del usuario
-    const wldAddress = "0x456...";   // Dirección del token WLD
-    const usdcAddress = "0x789...";  // Dirección del token USDC
-
-    // Función para obtener balances
-    const fetchUserBalances = async () => {
-    const wldBalance = await web3Client.fetchERC20Balance(walletAddress, wldAddress, WLD);
-    const usdcBalance = await web3Client.fetchERC20Balance(walletAddress, usdcAddress, WLD, 6);
-    
-    console.log("WLD Balance:", wldBalance);
-    console.log("USDC Balance:", usdcBalance);
-    };
-
-    // Función para obtener pendingId
-    const fetchPendingId = async () => {
-    const pendingId = await web3Client.fetchPendingId(walletAddress, "0xCRASH...", ABIcrash);
-    console.log("Pending ID:", pendingId);
-    };
-
-    // Llamar a las funciones
-    fetchUserBalances();
-    fetchPendingId();
- * 
- * HOW TO USE CHICKEN FARM METHODS
- * 
     import web3Client from "@/components/utils/web3Client";
 
-    const walletAddress = "0x123..."; // Dirección de la wallet del usuario
-    const chickenFarmAddress = "0x456..."; // Dirección del contrato ChickenFarm
+    const walletAddress = "0x123..."; // User's wallet address
+    const stakeContractAddress = "0x456..."; // BirdStake contract address
 
-    // Obtener datos del usuario
-    const fetchUserData = async () => {
-      const userData = await web3Client.getUserData(walletAddress, chickenFarmAddress);
-      console.log("User Data:", userData);
+    // Fetch user and pool data
+    const fetchStakeData = async () => {
+      const userInfo = await web3Client.getUserInfo(walletAddress, stakeContractAddress);
+      console.log("User Info:", userInfo);
       
-      const miners = await web3Client.getMyMiners(walletAddress, chickenFarmAddress);
-      const eggs = await web3Client.getEggsSinceLastHatch(walletAddress, chickenFarmAddress);
+      const pendingRewards = await web3Client.getPendingRewards(walletAddress, stakeContractAddress);
+      console.log("Pending Rewards:", pendingRewards);
       
-      console.log("Miners:", miners);
-      console.log("Eggs:", eggs);
+      const poolInfo = await web3Client.getPoolInfo(stakeContractAddress);
+      console.log("Pool Info:", poolInfo);
     };
 
-    // Calcular compra/venta
-    const calculateTrades = async () => {
-      const eggsToBuy = await web3Client.calculateEggBuy("1.0", chickenFarmAddress);
-      const sellValue = await web3Client.calculateEggSell("1000", chickenFarmAddress);
-      
-      console.log("Eggs to buy with 1 token:", eggsToBuy);
-      console.log("Value for 1000 eggs:", sellValue);
-    };
-
-    fetchUserData();
-    calculateTrades();
+    fetchStakeData();
  * 
  */
