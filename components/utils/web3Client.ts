@@ -28,30 +28,34 @@ class Web3Client {
     const contract = await this.getContract(tokenAddress, ERC20ABI);
 
     const balance = await contract.balanceOf(walletAddress);
-    const formattedBalance =
-      decimals === 18
-        ? parseFloat(ethers.formatEther(balance)).toFixed(2)
-        : (parseFloat(balance) / 10 ** decimals).toFixed(2);
-    return formattedBalance.toString();
+    return ethers.formatUnits(balance, decimals);
   }
 
   // ========== BIRD STAKE SPECIFIC METHODS ==========
 
   // Obtener la información del usuario
-  async getUserInfo(walletAddress: string, stakeContractAddress: string): Promise<{ amount: string, rewardDebt: string }> {
+  async getUserInfo(
+    walletAddress: string,
+    stakeContractAddress: string,
+    stakedTokenDecimals: number = 18
+  ): Promise<{ amount: string; rewardDebt: string }> {
     const contract = await this.getContract(stakeContractAddress, GameABI);
     const userInfo = await contract.userInfo(walletAddress);
     return {
-      amount: ethers.formatEther(userInfo.amount),
-      rewardDebt: ethers.formatEther(userInfo.rewardDebt)
+      amount: ethers.formatUnits(userInfo.amount, stakedTokenDecimals),
+      rewardDebt: ethers.formatUnits(userInfo.rewardDebt, stakedTokenDecimals), // Asumimos que rewardDebt usa los mismos decimales
     };
   }
 
   // Obtener la recompensa pendiente
-  async getPendingRewards(walletAddress: string, stakeContractAddress: string): Promise<string> {
+  async getPendingRewards(
+    walletAddress: string,
+    stakeContractAddress: string,
+    rewardTokenDecimals: number = 18
+  ): Promise<string> {
     const contract = await this.getContract(stakeContractAddress, GameABI);
     const pendingRewards = await contract.pendingReward(walletAddress);
-    return ethers.formatEther(pendingRewards);
+    return ethers.formatUnits(pendingRewards, rewardTokenDecimals);
   }
 
   // Obtener información del pool
@@ -66,7 +70,7 @@ class Web3Client {
       poolLimitPerUser,
       houseEdge,
       houseWallet,
-      totalFeesCollected
+      totalFeesCollected,
     ] = await Promise.all([
       contract.stakedToken(),
       contract.rewardToken(),
@@ -76,7 +80,7 @@ class Web3Client {
       contract.poolLimitPerUser(),
       contract.houseEdge(),
       contract.houseWallet(),
-      contract.totalFeesCollected()
+      contract.totalFeesCollected(),
     ]);
 
     return {
@@ -88,7 +92,7 @@ class Web3Client {
       poolLimitPerUser: ethers.formatEther(poolLimitPerUser),
       houseEdge: houseEdge.toString(),
       houseWallet,
-      totalFeesCollected: ethers.formatEther(totalFeesCollected)
+      totalFeesCollected: ethers.formatEther(totalFeesCollected),
     };
   }
 
@@ -131,7 +135,12 @@ class Web3Client {
   }
 
   // Obtener datos para calcular APY y rewards del usuario
-  async getStakingRewardData(stakeContractAddress: string, userAddress: string): Promise<{
+  async getStakingRewardData(
+    stakeContractAddress: string,
+    userAddress: string,
+    stakedTokenDecimals: number = 18,
+    rewardTokenDecimals: number = 18
+  ): Promise<{
     rewardPerSecond: string;
     userStakedAmount: string;
     totalStakedSupply: string;
@@ -139,16 +148,16 @@ class Web3Client {
     estimatedAPY: string;
   }> {
     const contract = await this.getContract(stakeContractAddress, GameABI);
-    const stakedTokenContract = await this.getContract(await contract.stakedToken(), ERC20ABI);
+    const stakedTokenAddress = await contract.stakedToken();
+    const stakedTokenContract = await this.getContract(
+      stakedTokenAddress,
+      ERC20ABI
+    );
 
-    const [
-      rewardPerSecond,
-      userInfo,
-      totalStakedSupply
-    ] = await Promise.all([
+    const [rewardPerSecond, userInfo, totalStakedSupply] = await Promise.all([
       contract.rewardPerSecond(),
       contract.userInfo(userAddress),
-      stakedTokenContract.balanceOf(stakeContractAddress) // Total tokens staked in contract
+      stakedTokenContract.balanceOf(stakeContractAddress), // Total tokens staked in contract
     ]);
 
     const userStakedAmount = userInfo.amount;
@@ -157,31 +166,46 @@ class Web3Client {
     let userRewardPerMinute: string = "0";
     let estimatedAPY: string = "0";
 
-    if (totalStakedSupply > 0 && userStakedAmount > 0) {
+    const totalStakedSupplyFormatted = parseFloat(
+      ethers.formatUnits(totalStakedSupply, stakedTokenDecimals)
+    );
+    const userStakedAmountFormatted = parseFloat(
+      ethers.formatUnits(userStakedAmount, stakedTokenDecimals)
+    );
+    const rewardPerSecondFormatted = parseFloat(
+      ethers.formatUnits(rewardPerSecond, rewardTokenDecimals)
+    );
+
+    if (
+      totalStakedSupplyFormatted > 0 &&
+      userStakedAmountFormatted > 0 &&
+      rewardPerSecondFormatted > 0
+    ) {
       // Reward por segundo del usuario
-      const userRewardPerSecond: number = (
-        Number(ethers.formatEther(userStakedAmount)) /
-        Number(ethers.formatEther(totalStakedSupply))
-      ) * Number(ethers.formatEther(rewardPerSecond));
+      const userRewardPerSecond: number =
+        (userStakedAmountFormatted / totalStakedSupplyFormatted) *
+        rewardPerSecondFormatted;
 
       // Reward por minuto
       userRewardPerMinute = (userRewardPerSecond * 60).toFixed(8);
 
       // APY estimado (recompensas anuales / stake inicial * 100)
       const userRewardPerYear: number = userRewardPerSecond * 31536000; // 365 * 24 * 60 * 60
-      const userStakedAmountFormatted: number = Number(ethers.formatEther(userStakedAmount));
 
       if (userStakedAmountFormatted > 0) {
-        estimatedAPY = ((userRewardPerYear / userStakedAmountFormatted) * 100).toFixed(2);
+        estimatedAPY = (
+          (userRewardPerYear / userStakedAmountFormatted) *
+          100
+        ).toFixed(2);
       }
     }
 
     return {
-      rewardPerSecond: ethers.formatEther(rewardPerSecond),
-      userStakedAmount: ethers.formatEther(userStakedAmount),
-      totalStakedSupply: ethers.formatEther(totalStakedSupply),
+      rewardPerSecond: rewardPerSecondFormatted.toString(),
+      userStakedAmount: userStakedAmountFormatted.toString(),
+      totalStakedSupply: totalStakedSupplyFormatted.toString(),
       userRewardPerMinute,
-      estimatedAPY
+      estimatedAPY,
     };
   }
 }
@@ -193,7 +217,7 @@ export default web3Client;
 
 /**
  * HOW TO USE
- * 
+ *
     import web3Client from "@/components/utils/web3Client";
 
     const walletAddress = "0x123..."; // User's wallet address
@@ -203,14 +227,14 @@ export default web3Client;
     const fetchStakeData = async () => {
       const userInfo = await web3Client.getUserInfo(walletAddress, stakeContractAddress);
       console.log("User Info:", userInfo);
-      
+
       const pendingRewards = await web3Client.getPendingRewards(walletAddress, stakeContractAddress);
       console.log("Pending Rewards:", pendingRewards);
-      
+
       const poolInfo = await web3Client.getPoolInfo(stakeContractAddress);
       console.log("Pool Info:", poolInfo);
     };
 
     fetchStakeData();
- * 
+ *
  */
