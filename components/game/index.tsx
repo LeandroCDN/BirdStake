@@ -49,9 +49,9 @@ export default function Game() {
         ),
       ]);
 
-      setWldBalance(wldBal);
-      setGemsBalance(gemsBal);
-      setUsdcBalance(usdcBal);
+      setWldBalance(parseFloat(wldBal).toFixed(2));
+      setGemsBalance(parseFloat(gemsBal).toFixed(2));
+      setUsdcBalance(parseFloat(usdcBal).toFixed(2));
       setWalletAddress(MiniKit.user.walletAddress);
     } catch (error) {
       console.error("Error fetching main balances:", error);
@@ -182,6 +182,16 @@ export default function Game() {
           </div>
         )}
       </div>
+
+      {/* Footer text */}
+      {filteredPools.length > 0 && (
+        <div className="flex justify-center py-4">
+          <p className="text-sm text-center text-gray-500">
+            The APR/Rewards displayed is the total reward, shared between all
+            stakers.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
